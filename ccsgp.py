@@ -13,7 +13,8 @@ class MyPlot:
     self.func = None
     if fdata is not None:
       self.func = Gnuplot.Data(fdata, inline=1, with_="lines lc 0 lw 4 lt 1")
-    self.gp = Gnuplot.Gnuplot(debug=1)
+    self.gp = Gnuplot.Gnuplot(debug=0)
+    self.gp('set terminal dumb')
   def setEPS(self, n):
     self.epsname = n
   def setX(self, xt):
