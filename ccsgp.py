@@ -47,7 +47,7 @@ class MyPlot:
 def getNumpyArr(x, a):
   return np.array((x, unp.nominal_values(a), unp.std_devs(a))).T
 
-def make_plot(name='test', log=False, **kwargs):
+def make_plot(name='test', log=[False,False], **kwargs):
   plt = MyPlot(
     data = [
       getNumpyArr(kwargs['x'][i], kwargs['y'][i]) for i in xrange(len(kwargs['y']))
@@ -59,5 +59,6 @@ def make_plot(name='test', log=False, **kwargs):
   plt.setEPS(name+'.eps')
   plt.setX('invariant mass', kwargs['xr'][0], kwargs['xr'][1])
   plt.setY(name, kwargs['yr'][0], kwargs['yr'][1])
-  if log is True: plt.gp('set logscale y')
+  if log[0] is True: plt.gp('set logscale x')
+  if log[1] is True: plt.gp('set logscale y')
   plt.plot()
