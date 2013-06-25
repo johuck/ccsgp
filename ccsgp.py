@@ -16,13 +16,27 @@ class MyPlot:
               ):
     self.data = [None]*(2*len(data))
     for i in xrange(len(data)):
-      w1 = main_opts[i]+' lc '+str(i)+extra_opts[2*i]
+      w1 = main_opts[i]+' '+extra_opts[2*i]
       self.data[2*i] = Gnuplot.Data(data[i], inline=1, title=titles[i], with_ = w1)
-      w2 = 'yerrorbars lc '+str(i)+' pt 0 '+extra_opts[2*i+1]
-      self.data[2*i+1] = Gnuplot.Data(data[i], inline=1, with_ = w2)
+      if data[i].T[2].sum() > 0:
+        w2 = 'yerrorbars lc 0 pt 0 '+extra_opts[2*i+1]
+        self.data[2*i+1] = Gnuplot.Data(data[i], inline=1, with_ = w2)
+    self.data = filter(None, self.data)
     self.gp = Gnuplot.Gnuplot(debug=0)
     self.gp('set terminal dumb')
     self.gp('set bars small')
+    self.gp('set grid lt 4 lc rgb "#C8C8C8"')
+    self.gp('set key spacing 1.4')
+    self.gp('set key samplen 2.2')
+    self.gp('set key reverse Left')
+    self.gp('set key box lw 2')
+    #self.gp('set key width -4.1')
+    self.gp('set key height 0.5')
+    self.gp('set title "Evaluated Materials"')
+    self.gp('set bmargin 1')
+    self.gp('set tmargin 0.1')
+    self.gp('set lmargin 3')
+    self.gp('set rmargin 0.1')
   def __rng(self, a, b):
     return '[%f:%f]' % (a, b)
   def setEPS(self, n): self.epsname = n
@@ -41,7 +55,7 @@ class MyPlot:
   def plot(self):
     self.gp.plot(*self.data)
     self.gp.hardcopy(self.epsname, enhanced=1, color=1,
-                     mode='landscape', fontsize=22)
+                     mode='landscape', fontsize=24)
     self.convert()
 
 def getNumpyArr(x, a):
@@ -57,8 +71,14 @@ def make_plot(name='test', log=[False,False], **kwargs):
     titles = kwargs['titles']
   )
   plt.setEPS(name+'.eps')
-  plt.setX('invariant mass', kwargs['xr'][0], kwargs['xr'][1])
-  plt.setY(name, kwargs['yr'][0], kwargs['yr'][1])
-  if log[0] is True: plt.gp('set logscale x')
-  if log[1] is True: plt.gp('set logscale y')
+  plt.setX(kwargs['xlabel'], kwargs['xr'][0], kwargs['xr'][1])
+  plt.setY(kwargs['ylabel'], kwargs['yr'][0], kwargs['yr'][1])
+  if log[0] is True:
+    plt.gp('set logscale x')
+    plt.gp('set format x "10^{%L}"')
+  if log[1] is True:
+    plt.gp('set logscale y')
+    #plt.gp('set format y "10^{%L}"')
+    plt.gp('set grid mytics')
+    plt.gp('set ytics ("" .7,"" .8,"" .9, 1, 2, 3, 4, 5, 6, 7)')
   plt.plot()
