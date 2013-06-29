@@ -11,16 +11,25 @@ os.environ['GNUPLOT_PS_DIR'] = os.getcwd()
 class MyPlot:
   def __init__(self, data, # data = array of numpy arr's [x, y, dy]
                main_opts = ['points'], # len(main_opts) = len(data)
+               using = ['1:2:3']*2, # specify columns
                extra_opts = ['pt 18 lw 4 lc 1', 'lc 0 lw 4'], # len(extra_opts) = 2*len(data)
                titles = ['title1'] # array of key titles
               ):
     self.data = [None]*(2*len(data))
     for i in xrange(len(data)):
       w1 = main_opts[i]+' '+extra_opts[2*i]
-      self.data[2*i] = Gnuplot.Data(data[i], inline=1, title=titles[i], with_ = w1)
-      if data[i].T[2].sum() > 0:
-        w2 = 'yerrorbars lc 0 pt 0 '+extra_opts[2*i+1]
-        self.data[2*i+1] = Gnuplot.Data(data[i], inline=1, with_ = w2)
+      self.data[2*i] = Gnuplot.Data(
+        data[i], inline=1, title=titles[i], using=using[i], with_ = w1
+      )
+      if (
+        data[i].T[2].sum() > 0 and
+        main_opts[i] != 'boxerrorbars' and
+        main_opts[i] != 'yerrorbars'
+      ):
+        w2 = 'yerrorbars pt 0 '+extra_opts[2*i+1]
+        self.data[2*i+1] = Gnuplot.Data(
+          data[i], inline=1, using=using[i], with_ = w2
+        )
     self.data = filter(None, self.data)
     self.gp = Gnuplot.Gnuplot(debug=0)
     self.gp('set terminal dumb')
@@ -58,14 +67,20 @@ class MyPlot:
                      mode='landscape', fontsize=24)
     self.convert()
 
-def getNumpyArr(x, a):
-  return np.array((x, unp.nominal_values(a), unp.std_devs(a))).T
+def getNumpyArr(x, a, bw):
+  return np.array((x, unp.nominal_values(a), unp.std_devs(a), bw)).T
 
 def make_plot(name='test', log=[False,False], **kwargs):
-  plt = MyPlot(
+  if 'data' in kwargs:
+    data = [ kwargs['data'][i] for i in xrange(len(kwargs['data'])) ]
+  else:
     data = [
-      getNumpyArr(kwargs['x'][i], kwargs['y'][i]) for i in xrange(len(kwargs['y']))
-    ],
+      getNumpyArr(kwargs['x'][i], kwargs['y'][i], kwargs['bw'][i])
+      for i in xrange(len(kwargs['y']))
+    ]
+  plt = MyPlot(
+    data = data,
+    using = kwargs['using'],
     main_opts = kwargs['main_opts'],
     extra_opts = kwargs['extra_opts'],
     titles = kwargs['titles']
