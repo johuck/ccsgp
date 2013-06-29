@@ -86,9 +86,17 @@ class MyPlot:
     self.gp(
       'set label %d "%s" at %f, %f' % (self.nLabels, s, pos[0], pos[1])
     )
+  def __conv_cmd(self, c, i, o): return '%s %s %s' % (c, i, o)
   def convert(self):
-    pdfname = os.path.splitext(self.epsname)[0] + '.pdf'
-    convert_cmd = 'ps2pdf -dEPSCrop %s %s' % (self.epsname, pdfname)
+    print 'converting ...'
+    base = os.path.splitext(self.epsname)[0]
+    convert_cmd = self.__conv_cmd(
+      'ps2pdf -dEPSCrop', self.epsname, base+'.pdf'
+    )
+    call(convert_cmd, shell=True)
+    convert_cmd = self.__conv_cmd(
+      'convert -density 150', base+'.pdf', base+'.png'
+    )
     call(convert_cmd, shell=True)
   def plot(self):
     # make hardcopy of plot + convert to pdf
