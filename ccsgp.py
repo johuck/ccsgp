@@ -16,6 +16,7 @@ class MyPlot:
                titles = ['title1'] # array of key titles
               ):
     self.nVertLines = 0
+    self.nLabels = 0
     self.data = [None]*(2*len(data))
     for i in xrange(len(data)):
       w1 = main_opts[i]+' '+extra_opts[2*i]
@@ -65,6 +66,11 @@ class MyPlot:
         self.nVertLines, x, x
       )
     )
+  def drawLabel(self, s, pos):
+    self.nLabels += 1
+    self.gp(
+      'set label %d "%s" at %f, %f' % (self.nLabels, s, pos[0], pos[1])
+    )
   def convert(self):
     pdfname = os.path.splitext(self.epsname)[0] + '.pdf'
     convert_cmd = 'ps2pdf -dEPSCrop %s %s' % (self.epsname, pdfname)
@@ -99,6 +105,8 @@ def make_plot(name='test', log=[False,False], **kwargs):
   plt.setY(kwargs['ylabel'], kwargs['yr'][0], kwargs['yr'][1])
   if 'vert_lines' in kwargs:
     for x in kwargs['vert_lines']: plt.drawVertLine(x)
+  if 'labels' in kwargs:
+    for l in kwargs['labels']: plt.drawLabel(l, kwargs['labels'][l])
   if log[0] is True:
     plt.gp('set logscale x')
     plt.gp('set format x "10^{%L}"')
