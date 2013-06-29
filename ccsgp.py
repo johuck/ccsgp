@@ -37,17 +37,13 @@ class MyPlot:
     self.gp('set terminal dumb')
     self.gp('set bars small')
     self.gp('set grid lt 4 lc rgb "#C8C8C8"')
-    self.gp('set key spacing 1.4')
-    self.gp('set key samplen 2.2')
-    self.gp('set key reverse Left')
-    self.gp('set key box lw 2')
-    #self.gp('set key width -4.1')
-    self.gp('set key height 0.5')
-    self.gp('set title "Evaluated Materials"')
+    #self.gp('set title "Evaluated Materials"')
     self.gp('set bmargin 1')
     self.gp('set tmargin 0.1')
-    self.gp('set lmargin 3')
+    self.gp('set lmargin 3.5')
     self.gp('set rmargin 0.1')
+  def setKey(self, a):
+    for s in a: self.gp('set key %s' % s)
   def __rng(self, a, b):
     return '[%f:%f]' % (a, b)
   def setEPS(self, n): self.epsname = n
@@ -103,6 +99,7 @@ def make_plot(name='test', log=[False,False], **kwargs):
   plt.setEPS(name+'.eps')
   plt.setX(kwargs['xlabel'], kwargs['xr'][0], kwargs['xr'][1])
   plt.setY(kwargs['ylabel'], kwargs['yr'][0], kwargs['yr'][1])
+  if 'key' in kwargs: plt.setKey(kwargs['key'])
   if 'vert_lines' in kwargs:
     for x in kwargs['vert_lines']: plt.drawVertLine(x)
   if 'labels' in kwargs:
