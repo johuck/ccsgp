@@ -49,14 +49,31 @@ class MyPlot:
   def __rng(self, a, b):
     return '[%f:%f]' % (a, b)
   def setEPS(self, n): self.epsname = n
+  def setXRng(self, x1, x2):
+      self.gp('set xrange ' + self.__rng(x1, x2))
+  def setYRng(self, y1, y2):
+      self.gp('set yrange ' + self.__rng(y1, y2))
   def setX(self, xt, x1=None, x2=None):
     self.gp.xlabel(xt)
-    if x1 is not None and x2 is not None:
-      self.gp('set xrange ' + self.__rng(x1, x2))
+    if x1 is not None and x2 is not None: self.setXRng(x1, x2)
   def setY(self, yt, y1=None, y2=None):
     self.gp.ylabel(yt)
-    if y1 is not None and y2 is not None:
-      self.gp('set yrange ' + self.__rng(y1, y2))
+    if y1 is not None and y2 is not None: self.setYRng(y1, y2)
+  def setLog(self, log):
+    if log[0] is True:
+      self.gp('set logscale x')
+      #self.gp('set format x "10^{%L}"')
+    else:
+      self.gp('unset logscale x')
+      self.gp('set format x "%g"')
+    if log[1] is True:
+      self.gp('set logscale y')
+      self.gp('set format y "10^{%L}"')
+      self.gp('set grid mytics')
+      #self.gp('set ytics ("" .7,"" .8,"" .9, 1, 2, 3, 4, 5, 6, 7)')
+    else:
+      self.gp('unset logscale y')
+      self.gp('set format y "%g"')
   def drawVertLine(self, x):
     self.nVertLines += 1
     self.gp(
@@ -122,13 +139,16 @@ def make_plot(name='test', log=[False,False], **kwargs):
     for x in kwargs['vert_lines']: plt.drawVertLine(x)
   if 'labels' in kwargs:
     for l in kwargs['labels']: plt.drawLabel(l, kwargs['labels'][l])
-  if log[0] is True:
-    plt.gp('set logscale x')
-    plt.gp('set format x "10^{%L}"')
-  if log[1] is True:
-    plt.gp('set logscale y')
-    #plt.gp('set format y "10^{%L}"')
-    plt.gp('set grid mytics')
-    plt.gp('set ytics ("" .7,"" .8,"" .9, 1, 2, 3, 4, 5, 6, 7)')
+  plt.setLog(log)
   plt.plot()
   plt.write(name+'.hdf5')
+  return plt
+
+def repeat_plot(plt, **kwargs):
+  plt.gp('set terminal dumb')
+  xr, yr = kwargs['xr'], kwargs['yr']
+  plt.setXRng(xr[0], xr[1])
+  plt.setYRng(yr[0], yr[1])
+  plt.setEPS(kwargs['name']+'.eps')
+  plt.setLog(kwargs['log'])
+  plt.plot()
