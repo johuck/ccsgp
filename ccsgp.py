@@ -15,6 +15,7 @@ class MyPlot:
                extra_opts = ['pt 18 lw 4 lc 1', 'lc 0 lw 4'], # len(extra_opts) = 2*len(data)
                titles = ['title1'] # array of key titles
               ):
+    self.nVertLines = 0
     self.data = [None]*(2*len(data))
     for i in xrange(len(data)):
       w1 = main_opts[i]+' '+extra_opts[2*i]
@@ -57,14 +58,22 @@ class MyPlot:
     self.gp.ylabel(yt)
     if y1 is not None and y2 is not None:
       self.gp('set yrange ' + self.__rng(y1, y2))
+  def drawVertLine(self, x):
+    self.nVertLines += 1
+    self.gp(
+      'set arrow %d from %f,graph(0,0) to %f,graph(1,1) nohead' % (
+        self.nVertLines, x, x
+      )
+    )
   def convert(self):
     pdfname = os.path.splitext(self.epsname)[0] + '.pdf'
     convert_cmd = 'ps2pdf -dEPSCrop %s %s' % (self.epsname, pdfname)
     call(convert_cmd, shell=True)
   def plot(self):
     self.gp.plot(*self.data)
-    self.gp.hardcopy(self.epsname, enhanced=1, color=1,
-                     mode='landscape', fontsize=24)
+    self.gp.hardcopy(
+      self.epsname, enhanced=1, color=1, mode='landscape', fontsize=24
+    )
     self.convert()
 
 def getNumpyArr(x, a, bw):
@@ -88,6 +97,8 @@ def make_plot(name='test', log=[False,False], **kwargs):
   plt.setEPS(name+'.eps')
   plt.setX(kwargs['xlabel'], kwargs['xr'][0], kwargs['xr'][1])
   plt.setY(kwargs['ylabel'], kwargs['yr'][0], kwargs['yr'][1])
+  if 'vert_lines' in kwargs:
+    for x in kwargs['vert_lines']: plt.drawVertLine(x)
   if log[0] is True:
     plt.gp('set logscale x')
     plt.gp('set format x "10^{%L}"')
