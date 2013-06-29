@@ -5,6 +5,7 @@ import numpy as np
 import uncertainties.unumpy as unp
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
+import h5py
 
 os.environ['GNUPLOT_PS_DIR'] = os.getcwd()
 
@@ -17,6 +18,7 @@ class MyPlot:
               ):
     self.nVertLines = 0
     self.nLabels = 0
+    self.dataSets = dict( (k, v) for k, v in zip(titles, data) if k != '')
     self.data = [None]*(2*len(data))
     for i in xrange(len(data)):
       w1 = main_opts[i]+' '+extra_opts[2*i]
@@ -72,11 +74,27 @@ class MyPlot:
     convert_cmd = 'ps2pdf -dEPSCrop %s %s' % (self.epsname, pdfname)
     call(convert_cmd, shell=True)
   def plot(self):
+    # make hardcopy of plot + convert to pdf
     self.gp.plot(*self.data)
     self.gp.hardcopy(
       self.epsname, enhanced=1, color=1, mode='landscape', fontsize=24
     )
     self.convert()
+  def write(self, name):
+    # write all data to HDF5 file for
+    # - easy numpy import -> (savetxt) -> gnuplot
+    # - export to ROOT objects
+    f = h5py.File(name, 'w')
+    for k in self.dataSets:
+      f.create_dataset(k, data=self.dataSets[k])
+    f.close()
+    # h5py howto:
+      # open file: `f = h5py.File(name, 'r')`
+      # list datasets: `list(f)`
+      # load entire dataset as np arra: `arr = f['dst_name'][...]`
+      # NOTE: literally type the 3 dots, replace dset_name
+    # np.savetxt format: `fmt = '%.4f %.3e %.3e %.3e'`
+    # save array to txt file: `np.savetxt('arr.dat', arr, fmt=fmt)`
 
 def getNumpyArr(x, a, bw):
   return np.array((x, unp.nominal_values(a), unp.std_devs(a), bw)).T
@@ -113,3 +131,4 @@ def make_plot(name='test', log=[False,False], **kwargs):
     plt.gp('set grid mytics')
     plt.gp('set ytics ("" .7,"" .8,"" .9, 1, 2, 3, 4, 5, 6, 7)')
   plt.plot()
+  plt.write(name+'.hdf5')
