@@ -10,7 +10,13 @@ import h5py
 os.environ['GNUPLOT_PS_DIR'] = os.getcwd()
 
 class MyPlot:
-  def __init__(self, data, # data = array of numpy arr's [x, y, dy]
+  def __init__(self):
+    self.gp = Gnuplot.Gnuplot(debug=0)
+    self.gp('set terminal dumb')
+    self.gp('set bars small')
+    self.gp('set grid lt 4 lc rgb "#C8C8C8"')
+    #self.gp('set title "Evaluated Materials"')
+  def initData(self, data, # data = array of numpy arr's [x, y, dy]
                main_opts = ['points'], # len(main_opts) = len(data)
                using = ['1:2:3']*2, # specify columns
                extra_opts = ['pt 18 lw 4 lc 1', 'lc 0 lw 4'], # len(extra_opts) = 2*len(data)
@@ -35,15 +41,11 @@ class MyPlot:
           data[i], inline=1, using=using[i], with_ = w2
         )
     self.data = filter(None, self.data)
-    self.gp = Gnuplot.Gnuplot(debug=0)
-    self.gp('set terminal dumb')
-    self.gp('set bars small')
-    self.gp('set grid lt 4 lc rgb "#C8C8C8"')
-    #self.gp('set title "Evaluated Materials"')
-    self.gp('set bmargin 1')
-    self.gp('set tmargin 0.1')
-    self.gp('set lmargin 3.5')
-    self.gp('set rmargin 0.1')
+  def setBorders(self, l, b, r, t):
+    self.gp(('set lmargin %f') % l)
+    self.gp(('set bmargin %f') % b)
+    self.gp(('set rmargin %f') % r)
+    self.gp(('set tmargin %f') % t)
   def setKey(self, a):
     for s in a: self.gp('set key %s' % s)
   def __rng(self, a, b):
@@ -98,13 +100,15 @@ class MyPlot:
       'convert -density 150', base+'.pdf', base+'.png'
     )
     call(convert_cmd, shell=True)
-  def plot(self):
-    # make hardcopy of plot + convert to pdf
-    self.gp.plot(*self.data)
+  def hardcopy(self):
     self.gp.hardcopy(
       self.epsname, enhanced=1, color=1, mode='landscape', fontsize=24
     )
     self.convert()
+  def plot(self):
+    # make hardcopy of plot + convert to pdf
+    self.gp.plot(*self.data)
+    self.hardcopy()
   def write(self, name):
     # write all data to HDF5 file for
     # - easy numpy import -> (savetxt) -> gnuplot
@@ -132,24 +136,27 @@ def make_plot(name='test', log=[False,False], **kwargs):
       getNumpyArr(kwargs['x'][i], kwargs['y'][i], kwargs['bw'][i])
       for i in xrange(len(kwargs['y']))
     ]
-  plt = MyPlot(
+  plt = MyPlot()
+  plt.initData(
     data = data,
     using = kwargs['using'],
     main_opts = kwargs['main_opts'],
     extra_opts = kwargs['extra_opts'],
     titles = kwargs['titles']
   )
+  plt.setBorders(3.5, 1, 0.1, 0.1)
   plt.setEPS(name+'.eps')
   plt.setX(kwargs['xlabel'], kwargs['xr'][0], kwargs['xr'][1])
   plt.setY(kwargs['ylabel'], kwargs['yr'][0], kwargs['yr'][1])
   if 'key' in kwargs: plt.setKey(kwargs['key'])
+  else: plt.gp('unset key')
   if 'vert_lines' in kwargs:
     for x in kwargs['vert_lines']: plt.drawVertLine(x)
   if 'labels' in kwargs:
     for l in kwargs['labels']: plt.drawLabel(l, kwargs['labels'][l])
   plt.setLog(log)
   plt.plot()
-  plt.write(name+'.hdf5')
+  #plt.write(name+'.hdf5')
   return plt
 
 def repeat_plot(plt, **kwargs):
@@ -160,3 +167,12 @@ def repeat_plot(plt, **kwargs):
   plt.setEPS(kwargs['name']+'.eps')
   plt.setLog(kwargs['log'])
   plt.plot()
+
+#def make_panel(name='test', log=[False,False], **kwargs):
+#  plt = MyPlot()
+#  for i in len(data):
+#    plt.initData(
+#      data = data[i], using = ['1:2:3'], main_opts = ['points'],
+#      extra_opts = ['lw 4 lt 1 pt 18', 'lw 4 lt 1 lc 0'],
+#      titles = ['data']
+#    )
