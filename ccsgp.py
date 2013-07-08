@@ -28,7 +28,7 @@ class MyPlot:
     self.data = [None]*(2*len(data))
     for i in xrange(len(data)):
       w1 = main_opts[i]+' '+extra_opts[2*i]
-      self.data[2*i] = Gnuplot.Data(
+      self.data[2*i+1] = Gnuplot.Data(
         data[i], inline=1, title=titles[i], using=using[i], with_ = w1
       )
       if (
@@ -37,7 +37,7 @@ class MyPlot:
         main_opts[i] != 'yerrorbars'
       ):
         w2 = 'yerrorbars pt 0 '+extra_opts[2*i+1]
-        self.data[2*i+1] = Gnuplot.Data(
+        self.data[2*i] = Gnuplot.Data(
           data[i], inline=1, using=using[i], with_ = w2
         )
     self.data = filter(None, self.data)
