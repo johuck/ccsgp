@@ -10,12 +10,12 @@ import h5py
 os.environ['GNUPLOT_PS_DIR'] = os.getcwd()
 
 class MyPlot:
-  def __init__(self):
+  def __init__(self, title=''):
     self.gp = Gnuplot.Gnuplot(debug=0)
     self.gp('set terminal dumb')
     self.gp('set bars small')
     self.gp('set grid lt 4 lc rgb "#C8C8C8"')
-    #self.gp('set title "Evaluated Materials"')
+    self.gp('set title "%s"' % title)
   def initData(self, data, # data = array of numpy arr's [x, y, dy]
                main_opts = ['points'], # len(main_opts) = len(data)
                using = ['1:2:3']*2, # specify columns
@@ -128,7 +128,7 @@ class MyPlot:
 def getNumpyArr(x, a, bw):
   return np.array((x, unp.nominal_values(a), unp.std_devs(a), bw)).T
 
-def make_plot(name='test', log=[False,False], **kwargs):
+def make_plot(name='test', title='', log=[False,False], **kwargs):
   if 'data' in kwargs:
     data = [ kwargs['data'][i] for i in xrange(len(kwargs['data'])) ]
   else:
@@ -136,7 +136,7 @@ def make_plot(name='test', log=[False,False], **kwargs):
       getNumpyArr(kwargs['x'][i], kwargs['y'][i], kwargs['bw'][i])
       for i in xrange(len(kwargs['y']))
     ]
-  plt = MyPlot()
+  plt = MyPlot(title)
   plt.initData(
     data = data,
     using = kwargs['using'],
@@ -144,7 +144,7 @@ def make_plot(name='test', log=[False,False], **kwargs):
     extra_opts = kwargs['extra_opts'],
     titles = kwargs['titles']
   )
-  plt.setBorders(3.5, 1, 0.1, 0.1)
+  plt.setBorders(5, 1, 0.1, 0.1)
   plt.setEPS(name+'.eps')
   plt.setX(kwargs['xlabel'], kwargs['xr'][0], kwargs['xr'][1])
   plt.setY(kwargs['ylabel'], kwargs['yr'][0], kwargs['yr'][1])
