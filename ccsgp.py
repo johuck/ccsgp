@@ -156,7 +156,7 @@ def make_plot(name='test', title='', log=[False,False], **kwargs):
     for l in kwargs['labels']: plt.drawLabel(l, kwargs['labels'][l])
   plt.setLog(log)
   plt.plot()
-  #plt.write(name+'.hdf5')
+  if 'write' in kwargs and kwargs['write']: plt.write(name+'.hdf5')
   return plt
 
 def repeat_plot(plt, **kwargs):
