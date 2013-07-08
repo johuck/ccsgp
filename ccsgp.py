@@ -90,7 +90,6 @@ class MyPlot:
     )
   def __conv_cmd(self, c, i, o): return '%s %s %s' % (c, i, o)
   def convert(self):
-    print 'converting ...'
     base = os.path.splitext(self.epsname)[0]
     convert_cmd = self.__conv_cmd(
       'ps2pdf -dEPSCrop', self.epsname, base+'.pdf'
