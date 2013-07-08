@@ -7,7 +7,7 @@ import Gnuplot, Gnuplot.funcutils
 from subprocess import call
 import h5py
 
-os.environ['GNUPLOT_PS_DIR'] = os.getcwd()
+os.environ['GNUPLOT_PS_DIR'] = os.path.realpath(__file__)
 
 class MyPlot:
   def __init__(self, title=''):
