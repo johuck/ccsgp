@@ -10,20 +10,38 @@ import h5py
 os.environ['GNUPLOT_PS_DIR'] = os.path.dirname(__file__)
 
 class MyPlot:
-  def __init__(self, title=''):
-    self.gp = Gnuplot.Gnuplot(debug=0)
-    self.gp('set terminal dumb')
+  def __init__(self, title='', isPanel = False, name='test'):
+    self.gp = Gnuplot.Gnuplot(debug=1)
+    self.xPanProps = [1.9, 0.23, 0.15] # xscale, xsize, xoffset
+    self.isPanel = isPanel
+    # self.gp('set terminal aqua size %s,400' % self.xPanProps[0])
+    if self.isPanel:
+      self.gp('set terminal postscript eps enhanced color "Helvetica" 24')
+      self.gp('set size %f,1' % self.xPanProps[0])
+      self.setEPS(name+'.eps')
+      self.gp('set output "%s"' % self.epsname)
+    else: self.gp('set terminal dumb')
     self.gp('set bars small')
     self.gp('set grid lt 4 lc rgb "#C8C8C8"')
     self.gp('set title "%s"' % title)
+    self.nPanels = 0
+    self.nVertLines = 0
+    self.nLabels = 0
+    if isPanel: self.gp('set multiplot')
   def initData(self, data, # data = array of numpy arr's [x, y, dy]
                main_opts = ['points'], # len(main_opts) = len(data)
                using = ['1:2:3']*2, # specify columns
                extra_opts = ['pt 18 lw 4 lc 1', 'lc 0 lw 4'], # len(extra_opts) = 2*len(data)
                titles = ['title1'] # array of key titles
               ):
-    self.nVertLines = 0
-    self.nLabels = 0
+    if self.isPanel:
+      pan_wdth = self.xPanProps[1]*self.xPanProps[0]
+      xorig = self.xPanProps[2]+self.nPanels*pan_wdth
+      print self.nPanels, pan_wdth, xorig
+      self.gp('set origin %f,0' % xorig)
+      self.gp('set size %f,1' % pan_wdth)
+      if self.nPanels > 0: self.gp('set ytics format " "')
+      self.nPanels += 1
     self.dataSets = dict( (k, v) for k, v in zip(titles, data) if k != '')
     self.data = [None]*(2*len(data))
     for i in xrange(len(data)):
@@ -49,12 +67,12 @@ class MyPlot:
   def setKey(self, a):
     for s in a: self.gp('set key %s' % s)
   def __rng(self, a, b):
-    return '[%f:%f]' % (a, b)
+    return '[%e:%e]' % (a, b)
   def setEPS(self, n): self.epsname = n
   def setXRng(self, x1, x2):
-      self.gp('set xrange ' + self.__rng(x1, x2))
+    self.gp('set xrange ' + self.__rng(x1, x2))
   def setYRng(self, y1, y2):
-      self.gp('set yrange ' + self.__rng(y1, y2))
+    self.gp('set yrange ' + self.__rng(y1, y2))
   def setX(self, xt, x1=None, x2=None):
     self.gp.xlabel(xt)
     if x1 is not None and x2 is not None: self.setXRng(x1, x2)
@@ -107,7 +125,7 @@ class MyPlot:
   def plot(self):
     # make hardcopy of plot + convert to pdf
     self.gp.plot(*self.data)
-    self.hardcopy()
+    if not self.isPanel: self.hardcopy()
   def write(self, name):
     # write all data to HDF5 file for
     # - easy numpy import -> (savetxt) -> gnuplot
@@ -167,11 +185,17 @@ def repeat_plot(plt, **kwargs):
   plt.setLog(kwargs['log'])
   plt.plot()
 
-#def make_panel(name='test', log=[False,False], **kwargs):
-#  plt = MyPlot()
-#  for i in len(data):
-#    plt.initData(
-#      data = data[i], using = ['1:2:3'], main_opts = ['points'],
-#      extra_opts = ['lw 4 lt 1 pt 18', 'lw 4 lt 1 lc 0'],
-#      titles = ['data']
-#    )
+def make_panel(name='test', log=[False,False], **kwargs):
+  plt = MyPlot(isPanel=True, name=name)
+  plt.setLog(log)
+  plt.setXRng(0,1.15)
+  plt.setYRng(1e-5, 20)
+  plt.setBorders(0.3, 2, 0.5, 0.1)
+  #plt.drawLabel('mass', [0.5,0.1])
+  for t, d in kwargs['data'].iteritems(): # TODO: OrderedDict
+    plt.initData(
+      data = [d], using = ['1:2:3'], main_opts = ['points'],
+      extra_opts = ['lw 4 lt 1 pt 18', 'lw 4 lt 1 lc 0'],
+      titles = [t]
+    )
+    plt.plot()
