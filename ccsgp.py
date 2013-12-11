@@ -94,11 +94,11 @@ class MyPlot:
     else:
       self.gp('unset logscale y')
       self.gp('set format y "%g"')
-  def drawVertLine(self, x):
+  def drawVertLine(self, x, opts):
     self.nVertLines += 1
     self.gp(
-      'set arrow %d from %f,graph(0,0) to %f,graph(1,1) nohead' % (
-        self.nVertLines, x, x
+      'set arrow %d from %f,graph(0,0) to %f,graph(1,1) nohead %s' % (
+        self.nVertLines, x, x, opts
       )
     )
   def drawLabel(self, s, pos):
@@ -168,7 +168,9 @@ def make_plot(name='test', title='', log=[False,False], **kwargs):
   if 'key' in kwargs: plt.setKey(kwargs['key'])
   else: plt.gp('unset key')
   if 'vert_lines' in kwargs:
-    for x in kwargs['vert_lines']: plt.drawVertLine(x)
+    for x in kwargs['vert_lines']:
+      opts = kwargs['vert_lines_opts'][plt.nVertLines] if 'vert_lines_opts' in kwargs else ''
+      plt.drawVertLine(x, opts)
   if 'labels' in kwargs:
     for l in kwargs['labels']: plt.drawLabel(l, kwargs['labels'][l])
   plt.setLog(log)
