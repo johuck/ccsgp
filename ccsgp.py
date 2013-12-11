@@ -27,6 +27,7 @@ class MyPlot:
     self.nPanels = 0
     self.nVertLines = 0
     self.nLabels = 0
+    self.posLabelsAbs = True
     if isPanel: self.gp('set multiplot')
   def initData(self, data, # data = array of numpy arr's [x, y, dy]
                main_opts = ['points'], # len(main_opts) = len(data)
@@ -103,8 +104,11 @@ class MyPlot:
     )
   def drawLabel(self, s, pos):
     self.nLabels += 1
+    pos_cmd = 'at' if self.posLabelsAbs else 'at graph'
     self.gp(
-      'set label %d "%s" at %f, %f' % (self.nLabels, s, pos[0], pos[1])
+      'set label %d "%s" %s %f, %f' % (
+        self.nLabels, s, pos_cmd, pos[0], pos[1]
+      )
     )
   def __conv_cmd(self, c, i, o): return '%s %s %s' % (c, i, o)
   def convert(self):
@@ -171,6 +175,7 @@ def make_plot(name='test', title='', log=[False,False], **kwargs):
     for x in kwargs['vert_lines']:
       opts = kwargs['vert_lines_opts'][plt.nVertLines] if 'vert_lines_opts' in kwargs else ''
       plt.drawVertLine(x, opts)
+  if 'posLabelsAbs' in kwargs: plt.posLabelsAbs = kwargs['posLabelsAbs']
   if 'labels' in kwargs:
     for l in kwargs['labels']: plt.drawLabel(l, kwargs['labels'][l])
   plt.setLog(log)
