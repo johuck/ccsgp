@@ -9,7 +9,7 @@ import h5py
 
 os.environ['GNUPLOT_PS_DIR'] = os.path.dirname(__file__)
 
-class MyBasePlot:
+class MyBasePlot(object):
   def __init__(self, title = '', isPanel = False, name = 'test'):
     # members
     self.title = title
@@ -110,27 +110,31 @@ class MyBasePlot:
       # NOTE: literally type the 3 dots, replace dset_name
     # np.savetxt format: `fmt = '%.4f %.3e %.3e %.3e'`
     # save array to txt file: `np.savetxt('arr.dat', arr, fmt=fmt)`
-    def initSettings(self, kwargs):
-      self.setBorders(5, 1, 0.1, 0.1)
-      self.setX(kwargs['xlabel'], kwargs['xr'][0], kwargs['xr'][1])
-      self.setY(kwargs['ylabel'], kwargs['yr'][0], kwargs['yr'][1])
-      if 'key' in kwargs: self.setKey(kwargs['key'])
-      else: self.gp('unset key')
-      if 'vert_lines' in kwargs:
-        for x in kwargs['vert_lines']:
-          opts = ''
-          if 'vert_lines_opts' in kwargs:
-            opts = kwargs['vert_lines_opts'][self.nVertLines]
-          self.drawVertLine(x, opts)
-      if 'posLabelsAbs' in kwargs:
-        self.posLabelsAbs = kwargs['posLabelsAbs']
-      if 'labels' in kwargs:
-        for l in kwargs['labels']: self.drawLabel(l, kwargs['labels'][l])
-      self.setLog(kwargs['log'])
-      self.plot()
-      if 'write' in kwargs and kwargs['write']: self.write(name+'.hdf5')
+  def initSettings(self, kwargs):
+    self.setBorders(5, 1, 0.1, 0.1)
+    self.setX(kwargs['xlabel'], kwargs['xr'][0], kwargs['xr'][1])
+    self.setY(kwargs['ylabel'], kwargs['yr'][0], kwargs['yr'][1])
+    if 'key' in kwargs: self.setKey(kwargs['key'])
+    else: self.gp('unset key')
+    if 'vert_lines' in kwargs:
+      for x in kwargs['vert_lines']:
+        opts = ''
+        if 'vert_lines_opts' in kwargs:
+          opts = kwargs['vert_lines_opts'][self.nVertLines]
+        self.drawVertLine(x, opts)
+    if 'posLabelsAbs' in kwargs:
+      self.posLabelsAbs = kwargs['posLabelsAbs']
+    if 'labels' in kwargs:
+      for l in kwargs['labels']: self.drawLabel(l, kwargs['labels'][l])
+    self.setLog(kwargs['log'])
+    self.plot()
+    if 'write' in kwargs and kwargs['write']: self.write(name+'.hdf5')
 
 class MyPlot(MyBasePlot):
+  def __init__(self, title = '', isPanel = False, name = 'test'):
+    super(MyPlot, self).__init__(
+      title = title, isPanel = isPanel, name = name
+    )
   def initData(
     self, data, # data = array of numpy arr's [x, y, dy]
     main_opts = ['points'], # len(main_opts) = len(data)
