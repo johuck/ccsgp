@@ -183,7 +183,7 @@ def make_plot(name = 'test', title = '', **kwargs):
       getNumpyArr(kwargs['x'][i], kwargs['y'][i], kwargs['bw'][i])
       for i in xrange(len(kwargs['y']))
     ]
-  plt = MyPlot(title)
+  plt = MyPlot(title, name = name)
   plt.initData(
     data = data,
     using = kwargs['using'],
