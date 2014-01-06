@@ -10,12 +10,12 @@ import h5py
 os.environ['GNUPLOT_PS_DIR'] = os.path.dirname(__file__)
 
 class MyBasePlot(object):
-  def __init__(self, title = '', isPanel = False, name = 'test'):
+  def __init__(self, title = '', isPanel = False, name = 'test', debug = 0):
     # members
     self.title = title
     self.isPanel = isPanel
     self.epsname = name + '.eps'
-    self.gp = Gnuplot.Gnuplot(debug=1)
+    self.gp = Gnuplot.Gnuplot(debug = debug)
     self.xPanProps = [1.9, 0.23, 0.15] # xscale, xsize, xoffset for panel plots
     self.nPanels = 0
     self.nVertLines = 0
@@ -131,9 +131,9 @@ class MyBasePlot(object):
     if 'write' in kwargs and kwargs['write']: self.write(name+'.hdf5')
 
 class MyPlot(MyBasePlot):
-  def __init__(self, title = '', isPanel = False, name = 'test'):
+  def __init__(self, title = '', isPanel = False, name = 'test', debug = 0):
     super(MyPlot, self).__init__(
-      title = title, isPanel = isPanel, name = name
+      title = title, isPanel = isPanel, name = name, debug = debug
     )
   def initData(
     self, data, # data = array of numpy arr's [x, y, dy]
@@ -183,7 +183,10 @@ def make_plot(name = 'test', title = '', **kwargs):
       getNumpyArr(kwargs['x'][i], kwargs['y'][i], kwargs['bw'][i])
       for i in xrange(len(kwargs['y']))
     ]
-  plt = MyPlot(title, name = name)
+  plt = MyPlot(
+    title, name = name,
+    debug = kwargs['debug'] if 'debug' in kwargs else 0
+  )
   plt.initData(
     data = data,
     using = kwargs['using'],
