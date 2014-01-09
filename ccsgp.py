@@ -14,6 +14,7 @@ class MyBasePlot(object):
     # members
     self.title = title
     self.isPanel = isPanel
+    self.name = name
     self.epsname = name + '.eps'
     self.gp = Gnuplot.Gnuplot(debug = debug)
     self.xPanProps = [1.9, 0.23, 0.15] # xscale, xsize, xoffset for panel plots
@@ -96,11 +97,11 @@ class MyBasePlot(object):
     # make hardcopy of plot + convert to pdf
     self.gp.plot(*self.data)
     if not self.isPanel: self.hardcopy()
-  def write(self, name):
+  def write(self):
     # write all data to HDF5 file for
     # - easy numpy import -> (savetxt) -> gnuplot
     # - export to ROOT objects
-    f = h5py.File(name, 'w')
+    f = h5py.File(self.name+'.hdf5', 'w')
     for k in self.dataSets: f.create_dataset(k, data=self.dataSets[k])
     f.close()
     # h5py howto:
@@ -128,7 +129,7 @@ class MyBasePlot(object):
       for l in kwargs['labels']: self.drawLabel(l, kwargs['labels'][l])
     self.setLog(kwargs['log'])
     self.plot()
-    if 'write' in kwargs and kwargs['write']: self.write(name+'.hdf5')
+    if 'write' in kwargs and kwargs['write']: self.write()
 
 class MyPlot(MyBasePlot):
   def __init__(self, title = '', isPanel = False, name = 'test', debug = 0):
