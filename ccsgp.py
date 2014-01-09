@@ -5,7 +5,12 @@ import numpy as np
 import uncertainties.unumpy as unp
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
-import h5py
+
+wHDF5 = True
+try:
+  import h5py
+except ImportError, e:
+  wHDF5 = False
 
 os.environ['GNUPLOT_PS_DIR'] = os.path.dirname(__file__)
 
@@ -101,9 +106,12 @@ class MyBasePlot(object):
     # write all data to HDF5 file for
     # - easy numpy import -> (savetxt) -> gnuplot
     # - export to ROOT objects
-    f = h5py.File(self.name+'.hdf5', 'w')
-    for k in self.dataSets: f.create_dataset(k, data=self.dataSets[k])
-    f.close()
+    if wHDF5:
+      f = h5py.File(self.name+'.hdf5', 'w')
+      for k in self.dataSets: f.create_dataset(k, data=self.dataSets[k])
+      f.close()
+    else:
+      print 'ccsgp.write: install h5py!'
     # h5py howto:
       # open file: `f = h5py.File(name, 'r')`
       # list datasets: `list(f)`
