@@ -6,12 +6,6 @@ import uncertainties.unumpy as unp
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
 
-wHDF5 = True
-try:
-  import h5py
-except ImportError, e:
-  wHDF5 = False
-
 os.environ['GNUPLOT_PS_DIR'] = os.path.dirname(__file__)
 
 class MyBasePlot(object):
@@ -27,10 +21,15 @@ class MyBasePlot(object):
     self.nVertLines = 0
     self.nLabels = 0
     self.posLabelsAbs = True
+    self.defaultkey = [
+      'spacing 1.4', 'samplen 2.2', 'reverse Left',
+      'box lw 2', 'height 0.5', 'font ",22"'
+    ]
     # gnuplot setup commands
     self.gp('set bars small')
     self.gp('set grid lt 4 lc rgb "#C8C8C8"')
     self.gp('set title "%s"' % self.title)
+    self.setKey()
     if self.isPanel:
       self.gp('set terminal postscript eps enhanced color "Helvetica" 24')
       self.gp('set size %f,1' % self.xPanProps[0])
@@ -43,7 +42,8 @@ class MyBasePlot(object):
     self.gp(('set bmargin %f') % b)
     self.gp(('set rmargin %f') % r)
     self.gp(('set tmargin %f') % t)
-  def setKey(self, a):
+  def setKey(self, a = None):
+    if a is None: a = self.defaultkey
     for s in a: self.gp('set key %s' % s)
   def __rng(self, a, b): return '[%e:%e]' % (a, b)
   def setXRng(self, x1, x2): self.gp('set xrange ' + self.__rng(x1, x2))
@@ -89,10 +89,11 @@ class MyBasePlot(object):
       'ps2pdf -dEPSCrop', self.epsname, base+'.pdf'
     )
     call(convert_cmd, shell=True)
-    convert_cmd = self.__conv_cmd(
-      'convert -density 150', base+'.pdf', base+'.png'
-    )
-    call(convert_cmd, shell=True)
+    for ext in ['.png', '.jpg']:
+      convert_cmd = self.__conv_cmd(
+        'convert -density 150', base+'.pdf', base+ext
+      )
+      call(convert_cmd, shell=True)
   def hardcopy(self):
     self.gp.hardcopy(
       self.epsname, enhanced=1, color=1, mode='landscape', fontsize=24
@@ -103,22 +104,24 @@ class MyBasePlot(object):
     self.gp.plot(*self.data)
     if not self.isPanel: self.hardcopy()
   def write(self):
-    # write all data to HDF5 file for
-    # - easy numpy import -> (savetxt) -> gnuplot
-    # - export to ROOT objects
-    if wHDF5:
+    """ write all data to HDF5 file for
+    - easy numpy import -> (savetxt) -> gnuplot
+    - export to ROOT objects
+    h5py howto:
+      - open file: `f = h5py.File(name, 'r')`
+      - list datasets: `list(f)`
+      - load entire dataset as np arra: `arr = f['dst_name'][...]`
+      - NOTE: literally type the 3 dots, replace dset_name
+      - np.savetxt format: `fmt = '%.4f %.3e %.3e %.3e'`
+      - save array to txt file: `np.savetxt('arr.dat', arr, fmt=fmt)`
+    """
+    try:
+      import h5py
       f = h5py.File(self.name+'.hdf5', 'w')
       for k in self.dataSets: f.create_dataset(k, data=self.dataSets[k])
       f.close()
-    else:
-      print 'ccsgp.write: install h5py!'
-    # h5py howto:
-      # open file: `f = h5py.File(name, 'r')`
-      # list datasets: `list(f)`
-      # load entire dataset as np arra: `arr = f['dst_name'][...]`
-      # NOTE: literally type the 3 dots, replace dset_name
-    # np.savetxt format: `fmt = '%.4f %.3e %.3e %.3e'`
-    # save array to txt file: `np.savetxt('arr.dat', arr, fmt=fmt)`
+    except ImportError, e:
+      print 'ccsgp.write: install h5py if you want to use this option!'
   def initSettings(self, kwargs):
     self.setBorders(5, 1, 0.1, 0.1)
     self.setX(kwargs['xlabel'], kwargs['xr'][0], kwargs['xr'][1])
