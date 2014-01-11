@@ -188,6 +188,14 @@ def getNumpyArr(x, a, bw):
   return np.array((x, unp.nominal_values(a), unp.std_devs(a), bw)).T
 
 def make_plot(name = 'test', title = '', **kwargs):
+  """ main function to generate a plot
+  describe keyword arguments
+  data
+  nVertLines
+  nLabels
+  format conversions
+  hdf5 write
+  """
   if 'data' in kwargs:
     data = [ kwargs['data'][i] for i in xrange(len(kwargs['data'])) ]
   else:
