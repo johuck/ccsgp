@@ -207,6 +207,19 @@ class MyPlot(object):
       )
     )
 
+  def prepare_plot(self, **kwargs):
+    """prepare for plotting (calls all members of MyPlot)"""
+    self.setMargins(**kwargs)
+    self.setter(kwargs.get('key', []))
+    for axis in ['x', 'y']:
+      self.setAxisLabel(kwargs.get(axis + 'label', ''), axis = axis)
+      self.setAxisRange(kwargs.get(axis + 'r'), axis = axis)
+      self.setAxisLog(kwargs.get(axis + 'log'), axis = axis)
+    for k, v in kwargs.get('vert_lines', {}):
+      self.setVerticalLine(float(k), v)
+    for k, v in kwargs.get('labels', {}):
+      self.setLabel(k, v[:1], v[-1])
+
   def convert(self):
     """convert eps original into pdf, png and jpg format"""
     call(' '.join([

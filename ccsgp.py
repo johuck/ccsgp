@@ -9,47 +9,45 @@
 import numpy as np
 from classes import MyPlot
 
-
 def make_plot(**kwargs):
   """ main function to generate a 1D plot
 
-  - Kwargs: name, title, data, debug, key, x(y)label, x(y)r, x(y)log, vert_lines, labels
+  - Kwargs:
+    name, title, debug,
+    data, styles, properties, titles
+    key, x(y)label, x(y)r, x(y)log, vert_lines, labels
   - explain format of kwargs.
 
-  :param labels: { 'label text': [x-pos., y-pos., abs. placement yes/no] }
+  :param labels: 'label text': [x-pos., y-pos., abs. placement yes/no]
   :type labels: dict
+  :returns: MyPlot
   """
   plt = MyPlot(
-    name = kwargs.get('name', 'test')
-    title = kwargs.get('title', '')
+    name = kwargs.get('name', 'test'),
+    title = kwargs.get('title', ''),
     debug = kwargs.get('debug', 0)
   )
-
-  plt.initData(**kwargs) # TODO: review
-
-  plt.setMargins()
-  self.setter(kwargs.get('key', []))
-  for axis in ['x', 'y']:
-    plt.setAxisLabel(kwargs.get(axis + 'label', ''), axis = axis)
-    plt.setAxisRange(kwargs.get(axis + 'r'), axis = axis)
-    plt.setAxisLog(kwargs.get(axis + 'log'), axis = axis)
-  for k, v in kwargs.get('vert_lines', {}):
-    plt.setVerticalLine(float(k), v)
-  for k, v in kwargs.get('labels', {}):
-    plt.setLabel(k, v[:1], v[-1])
+  plt.initData(**kwargs)
+  plt.prepare_plot(**kwargs)
   plt.plot()
   return plt
 
+def repeat_plot(plt, name, **kwargs):
+  """repeat a plot with different props
 
+  same kwargs as make_plot.
 
-def repeat_plot(plt, **kwargs):
+  :param plt: plot to repeat
+  :type plt: MyPlot
+  :param name: basename of new output file(s)
+  :type name: str
+  :returns: plt
+  """
   plt.gp('set terminal dumb')
-  xr, yr = kwargs['xr'], kwargs['yr']
-  plt.setAxisRange(xr[0], xr[1])
-  plt.setAxisRange(yr[0], yr[1], axis = 'y')
-  plt.epsname = kwargs['name'] + '.eps'
-  plt.setLog(kwargs['log'])
+  plt.epsname = name + '.eps'
+  plt.prepare_plot(**kwargs)
   plt.plot()
+  return plt
 
 ############################################
 ## TODO: make_panel is under development! ##
