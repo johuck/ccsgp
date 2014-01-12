@@ -19,6 +19,12 @@ for more details on the keyword options to 'make_plot'.
 repeat_plot to repplot with different axis ranges for instance.
 make_panel for panel plots (under construction)
 
+The name *ccsgp* stands for "Carbon Capture and Sequestration GnuPlot" as this
+library has first been developed in the context of the research of Johanna Huck.
+I knew how to produce nice-looking plots using gnuplot but wanted to hook it up
+to python directly. Now I can generate identical plots independent of the data
+input source (ROOT, YAML, txt, pickle, hdf5, ...).
+
 [1] http://gitlab.the-huck.com/ccs-pe-eval/ccsgp
 [2] http://gnuplot-py.sourceforge.net/
 [3] http://www.youtube.com/watch?v=b_y_cLX526c
