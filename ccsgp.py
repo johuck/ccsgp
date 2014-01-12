@@ -20,6 +20,9 @@ def make_plot(data, styles, properties, titles, **kwargs):
      possible gnuplot styles: points, lines, linespoints, yerrorbars,
      boxerrorbars
 
+  .. note::
+     for symbol numbers to use in labels see http://bit.ly/1erBgIk
+
   :param data: datasets 
   :type data: list
   :param styles: gnuplot styles for each dataset

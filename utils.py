@@ -1,3 +1,5 @@
+import itertools
+
 def zip_flat(a, b):
   """zip two lists and flattens the result
 

@@ -61,9 +61,9 @@ class MyPlot(object):
     :type style: str
     :returns: True or False
     """
+    sum_yerr = data.T[2].sum()
     return (
-      style != 'boxerrorbars' and style != 'yerrorbars' and
-      data.T[2].sum() > 0
+      style != 'boxerrorbars' and style != 'yerrorbars' and sum_yerr > 0
     )
 
   def _with_errs(self, prop):
@@ -79,7 +79,8 @@ class MyPlot(object):
     :type prop: str
     :returns: property string for errors
     """
-    lw = re.compile('lw \d').search(prop).group()[-1]
+    p = re.compile('lw \d')
+    lw = p.search(prop).group()[-1] if p.match() else '1'
     return 'yerrorbars pt 0 lt 1 lc 0 lw %s' % lw
 
   def initData(self, data, styles, properties, titles):
@@ -104,20 +105,20 @@ class MyPlot(object):
     :var data: list of Gnuplot.Data including extra data sets for error plotting
     """
     # dataSets used in hdf5()
-    self.dataSets = { (k, v) for k, v in izip(titles, data) if k }
+    self.dataSets = dict( (k, v) for k, v in izip(titles, data) if k )
     # zip all input parameters for easier looping
     zipped = izip(data, styles, properties, titles)
     # uneven: main data points drawn second
     main_data = [
       Gnuplot.Data(
-        d, inline = 1, title = t, using = _using(s), with_ = ' '.join([s, p])
+        d, inline = 1, title = t, using = self._using(s), with_ = ' '.join([s, p])
       ) for d, s, p, t in zipped
     ]
     # even: secondary data doubled up to plot errors separately
     sec_data = [
       Gnuplot.Data(
-        d, inline = 1, using = _using(s), with_ = _with_errs(p)
-      ) if _plot_errs(d, s) else None for d, s, p, t in zipped
+        d, inline = 1, using = self._using(s), with_ = self._with_errs(p)
+      ) if self._plot_errs(d, s) else None for d, s, p, t in zipped
     ]
     # zip main & secondary data and filter out None's
     self.data = filter(None, zip_flat(main_data, sec_data))
