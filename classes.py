@@ -9,151 +9,190 @@
 import os
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
+from config import basic_setup, default_margins, xPanProps
 
 os.environ['GNUPLOT_PS_DIR'] = os.path.dirname(__file__)
 
-class MyBasePlot(object):
-  """ base class for 1D and 2D plots
+class MyPlot(object):
+  """base class for 1D and 2D plots
 
-  - provides members and functions for general plotting
-  - inits members and starts basic gnuplot setup
+  - basic gnuplot setup (bars, grid, title, key, terminal, multiplot)
+  - utility functions for general plotting
 
   :param title: image title
   :type title: str
-  :param isPanel: whether to make a panel plot (multiplot)
-  :type isPanel: bool
   :param name: basename used for output files
   :type name: str
   :param debug: debug flag for verbose gnuplot output
   :type debug: bool
   """
-
-  def __init__(self, title = '', isPanel = False, name = 'test', debug = 0):
-    """ constructor """
-    self.title = title
-    self.isPanel = isPanel
+  def __init__(self, name = 'test', title = '', debug = 0):
     self.name = name
     self.epsname = name + '.eps'
     self.gp = Gnuplot.Gnuplot(debug = debug)
-    self.xPanProps = [1.9, 0.23, 0.15] # xscale, xsize, xoffset for panel plots
     self.nPanels = 0
     self.nVertLines = 0
     self.nLabels = 0
-    self.posLabelsAbs = True
-    self.defaultkey = [
-      'spacing 1.4', 'samplen 2.2', 'reverse Left',
-      'box lw 2', 'height 0.5', 'font ",22"'
-    ]
-    _gpsetup()
-    return None
+    self.setter(['title "%s"' % title] + basic_setup)
 
-  def _gpsetup(self):
-    """ basic gnuplot setup
+  def initData(self, data, styles, properties, titles):
+    """initialize the data
 
-    - private function called from constructor
-    - set bars, grid, title, key, terminal, multiplot
-    - see source for chosen defaults
+    - all lists given as parameters must have the same length.
+
+    :param data: data points w/ format [x, y, dy, bw] for each dataset 
+    :type data: list of numpy arrays
+    :param styles: plot styles for each dataset (points/yerrorbars/boxerrorbars)
+    :type styles: list of str
+    :param properties: plot properties for each dataset (pt/lw/ps/lc...)
+    :type properties: list of str
+    :param titles: key/legend titles for each dataset
+    :type titles: list of strings
     """
-    self.gp('set bars small')
-    self.gp('set grid lt 4 lc rgb "#C8C8C8"')
-    self.gp('set title "%s"' % self.title)
-    self.setKey()
-    if self.isPanel:
-      self.gp('set terminal postscript eps enhanced color "Helvetica" 24')
-      self.gp('set size %f,1' % self.xPanProps[0])
-      self.gp('set output "%s"' % self.epsname)
-      self.gp('set multiplot')
-    else:
-      self.gp('set terminal dumb')
+    # TODO: check point types: linespoints, lines ...
+    # TODO: extra_opts for error bars:
+    # use same lw as for points, but lighter color
+    # TODO: determine automatically due to fixed data point format
+    # using = ['1:2:3'] * 2 or [1:2:3:4]
 
-  def initSettings(self, kwargs):
-    self.setBorders([5, 1, 0.1, 0.1])
-    self.setX(kwargs['xlabel'], kwargs['xr'][0], kwargs['xr'][1])
-    self.setY(kwargs['ylabel'], kwargs['yr'][0], kwargs['yr'][1])
-    if 'key' in kwargs: self.setKey(kwargs['key'])
-    else: self.gp('unset key')
-    if 'vert_lines' in kwargs:
-      for x in kwargs['vert_lines']:
-        opts = ''
-        if 'vert_lines_opts' in kwargs:
-          opts = kwargs['vert_lines_opts'][self.nVertLines]
-        self.drawVertLine(x, opts)
-    if 'posLabelsAbs' in kwargs:
-      self.posLabelsAbs = kwargs['posLabelsAbs']
-    if 'labels' in kwargs:
-      for l in kwargs['labels']: self.drawLabel(l, kwargs['labels'][l])
-    self.setLog(kwargs['log'])
-    self.plot()
-    if 'write' in kwargs and kwargs['write']: self.write()
+    #  each data set is drawn twice to allow for different colors for the errorbars
 
-  def setBorders(self, l, b, r, t):
-    self.gp(('set lmargin %f') % l)
-    self.gp(('set bmargin %f') % b)
-    self.gp(('set rmargin %f') % r)
-    self.gp(('set tmargin %f') % t)
-  def setKey(self, a = None):
-    if a is None: a = self.defaultkey
-    for s in a: self.gp('set key %s' % s)
-  def __rng(self, a, b): return '[%e:%e]' % (a, b)
-  def setXRng(self, x1, x2): self.gp('set xrange ' + self.__rng(x1, x2))
-  def setYRng(self, y1, y2): self.gp('set yrange ' + self.__rng(y1, y2))
-  def setX(self, xt, x1=None, x2=None):
-    self.gp.xlabel(xt)
-    if x1 is not None and x2 is not None: self.setXRng(x1, x2)
-  def setY(self, yt, y1=None, y2=None):
-    self.gp.ylabel(yt)
-    if y1 is not None and y2 is not None: self.setYRng(y1, y2)
-  def setLog(self, log):
-    if log[0] is True:
-      self.gp('set logscale x')
+    self.dataSets = { (k, v) for k, v in zip(titles, data) if k }
+
+    self.data = [None]*(2*len(data))
+
+    for i in xrange(len(data)):
+      w1 = main_opts[i] + ' '+ extra_opts[2*i]
+
+      # uneven: 
+      self.data[2*i+1] = Gnuplot.Data(
+        data[i], inline = 1, title = titles[i], using = using[i], with_ = w1
+      )
+
+      if (
+        data[i].T[2].sum() > 0 and
+        main_opts[i] != 'boxerrorbars' and
+        main_opts[i] != 'yerrorbars'
+      ):
+        w2 = 'yerrorbars pt 0 '+extra_opts[2*i+1]
+        self.data[2*i] = Gnuplot.Data(
+          data[i], inline=1, using=using[i], with_ = w2
+        )
+
+    self.data = filter(None, self.data)
+
+
+
+
+
+
+  def setter(self, list):
+    """convenience function to set a list of gnuplot options
+
+    :param list: list of strings given to gnuplot's set command
+    :type list: list
+    """
+    for s in list: self.gp('set %s' % s)
+
+  def setMargins(self, **kwargs):
+    """set the margins
+    
+    keys other than l, b, t, r are ignored (see config.default_margins)
+    """
+    self.setter([
+      '%smargin %f' % (
+        k, kwargs.get(k, default_margins[k])
+      ) for k in default_margins
+    ])
+
+  def setAxisRange(self, rng, axis = 'x'):
+    """set range for specified axis
+
+    automatically determines axis range to include all data points if range is
+    not given.
+
+    :param rng: lower and upper range limits
+    :type rng: list
+    :param axis: axis to which to apply range
+    :type axis: str
+    """
+    if rng is None:
+      vals = [ n for v in self.data for n in v[:, 1] ]
+      rng = [ min(vals), max(vals) ]
+    self.gp('set %srange [%e:%e]' % (axis, rng[0], rng[1]))
+
+  def setAxisLabel(self, label, axis = 'x'):
+    """set label for specified axis
+
+    :param label: label
+    :type label: str
+    :param axis: axis which to label
+    :type axis: str
+    """
+    self.gp('set %slabel "%s"' % (axis, label))
+
+  def setAxisLog(self, log, axis = 'x'):
+    """set logarithmic scale for specified axis
+
+    :param log: whether to set logarithmic
+    :type log: bool
+    :param axis: axis which to set logarithmic
+    :type axis: str
+    """
+    if log:
+      self.setter([
+        'logscale %s' % axis, 'grid m%stics' % axis,
+        'format {0} "10^{%L}"'.format(axis)
+      ])
     else:
-      self.gp('unset logscale x')
-      self.gp('set format x "%g"')
-    if log[1] is True:
-      self.gp('set logscale y')
-      self.gp('set format y "10^{%L}"')
-      self.gp('set grid mytics')
-    else:
-      self.gp('unset logscale y')
-      self.gp('set format y "%g"')
-  def drawVertLine(self, x, opts):
+      self.gp('unset logscale %s' % axis)
+      self.gp('set format {0} "%g"'.format(axis))
+
+  def setVerticalLine(self, x, opts):
+    """draw a vertical line
+
+    :param x: position on x-axis
+    :type x: float
+    :param opts: line draw options
+    :type opts: str
+    """
     self.nVertLines += 1
     self.gp(
       'set arrow %d from %f,graph(0,0) to %f,graph(1,1) nohead %s' % (
         self.nVertLines, x, x, opts
       )
     )
-  def drawLabel(self, s, pos):
+
+  def setLabel(self, label, pos, abs_place = False):
+    """draw a label into the figure
+
+    :param label: label
+    :type label: str
+    :param pos: x,y - position
+    :type pos: list
+    :param abs_place: absolute or relative placement
+    :type abs_place: bool
+    """
     self.nLabels += 1
-    pos_cmd = 'at' if self.posLabelsAbs else 'at graph'
+    place = 'at' if abs_place else 'at graph'
     self.gp(
       'set label %d "%s" %s %f, %f' % (
-        self.nLabels, s, pos_cmd, pos[0], pos[1]
+        self.nLabels, label, place, pos[0], pos[1]
       )
     )
-  def __conv_cmd(self, c, i, o): return '%s %s %s' % (c, i, o)
+
   def convert(self):
-    base = os.path.splitext(self.epsname)[0]
-    convert_cmd = self.__conv_cmd(
-      'ps2pdf -dEPSCrop', self.epsname, base+'.pdf'
-    )
-    call(convert_cmd, shell=True)
+    """convert eps original into pdf, png and jpg format"""
+    call(' '.join([
+      'ps2pdf -dEPSCrop', self.epsname, self.name + '.pdf'
+    ]), shell = True)
     for ext in ['.png', '.jpg']:
-      convert_cmd = self.__conv_cmd(
-        'convert -density 150', base+'.pdf', base+ext
-      )
-      call(convert_cmd, shell=True)
-  def hardcopy(self):
-    self.gp.hardcopy(
-      self.epsname, enhanced=1, color=1, mode='landscape', fontsize=24
-    )
-    self.convert()
-  def plot(self):
-    # make hardcopy of plot + convert to pdf
-    self.gp.plot(*self.data)
-    if not self.isPanel: self.hardcopy()
-  def write(self):
-    """ write data contained in plot to HDF5 file
+      call(' '.join([
+        'convert -density 150', self.name + '.pdf', self.name + ext
+      ]), shell = True)
+
+  def hdf5(self):
+    """write data contained in plot to HDF5 file
 
     - easy numpy import -> (savetxt) -> gnuplot
     - export to ROOT objects
@@ -168,53 +207,46 @@ class MyBasePlot(object):
     """
     try:
       import h5py
-      f = h5py.File(self.name+'.hdf5', 'w')
-      for k in self.dataSets:
-        f.create_dataset(k, data=self.dataSets[k])
+      f = h5py.File(self.name + '.hdf5', 'w')
+      for k, v in self.dataSets: f.create_dataset(k, data = v)
       f.close()
-    except ImportError, e:
-      print 'ccsgp.write: install h5py if you want to use this option!'
+    except ImportError:
+      print 'install h5py to also save an hdf5 file of your plot!'
+    except:
+      print 'h5py imported but error raised!'
+      raise
 
-class MyPlot(MyBasePlot):
-  def __init__(self, title = '', isPanel = False, name = 'test', debug = 0):
-    super(MyPlot, self).__init__(
-      title = title, isPanel = isPanel, name = name, debug = debug
+  def hardcopy(self):
+    """generate eps, convert to other formats and write data to hdf5"""
+    self.gp.hardcopy(
+      self.epsname, enhanced = 1, color = 1, mode = 'landscape', fontsize = 24
     )
-  def initData(
-    self, data, # data = array of numpy arr's [x, y, dy]
-    main_opts = ['points'], # len(main_opts) = len(data)
-    using = ['1:2:3']*2, # specify columns
-    extra_opts = ['pt 18 lw 4 lc 1', 'lc 0 lw 4'], # len(extra_opts) = 2*len(data)
-    titles = ['title1'] # array of key titles
-  ):
-    if self.isPanel:
-      pan_wdth = self.xPanProps[1] * self.xPanProps[0]
-      xorig = self.xPanProps[2] + self.nPanels * pan_wdth
-      print self.nPanels, pan_wdth, xorig
-      self.gp('set origin %f,0' % xorig)
-      self.gp('set size %f,1' % pan_wdth)
-      if self.nPanels > 0: self.gp('set ytics format " "')
-      self.nPanels += 1
-    self.dataSets = dict( (k, v) for k, v in zip(titles, data) if k != '')
-    self.data = [None]*(2*len(data))
-    for i in xrange(len(data)):
-      w1 = main_opts[i]+' '+extra_opts[2*i]
-      self.data[2*i+1] = Gnuplot.Data(
-        data[i], inline=1, title=titles[i], using=using[i], with_ = w1
-      )
-      if (
-        data[i].T[2].sum() > 0 and
-        main_opts[i] != 'boxerrorbars' and
-        main_opts[i] != 'yerrorbars'
-      ):
-        w2 = 'yerrorbars pt 0 '+extra_opts[2*i+1]
-        self.data[2*i] = Gnuplot.Data(
-          data[i], inline=1, using=using[i], with_ = w2
-        )
-    self.data = filter(None, self.data)
+    self.convert()
+    self.hdf5()
 
-class MyPlot2D(MyBasePlot):
-  def initData(self, data):
-    self.data = Gnuplot.Data(data, inline=1, with_ = 'image')
+  def plot(self):
+    """plot and generate output files"""
+    self.gp.plot(*self.data)
+    if self.nPanels < 1: self.hardcopy()
 
 
+########################################################
+## TODO: below are needed for multiplot and under dev ##
+########################################################
+#  def prepare_multiplot(self):
+#    panel_setup = [
+#      'terminal postscript eps enhanced color "Helvetica" 24',
+#      'size %f,1' % xPanProps[0], 'output "%s"' % plt.epsname,
+#      'multiplot'
+#    ]
+#    self.setter(panel_setup)
+#
+#  def prepare_subfig(self):
+#    pan_wdth = xPanProps[1] * xPanProps[0]
+#    xorig = xPanProps[2] + self.nPanels * pan_wdth
+#    self.gp('set origin %f,0' % xorig)
+#    self.gp('set size %f,1' % pan_wdth)
+#    if self.nPanels > 0: self.gp('set ytics format " "')
+#    self.nPanels += 1
+#
+########################################################
