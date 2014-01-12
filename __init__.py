@@ -1,5 +1,6 @@
-"""
-library providing wrapper functions to gnuplot-py
+""" library providing wrapper functions to gnuplot-py
+
+.. moduleauthor:: Patrick Huck <phuck@lbl.gov>
 
 ccsgp [1] is a plotting library based on gnuplot-py [2,3] which wraps the
 necessary calls to gnuplot-py into one function called 'make_plot'. The keyword
@@ -16,7 +17,7 @@ image into hdf5 files for easy access via numpy. See
 $ pydoc pyana.ccsgp.make_plot
 for more details on the keyword options to 'make_plot'.
 
-repeat_plot to repplot with different axis ranges for instance.
+repeat_plot to replot with different axis ranges for instance.
 make_panel for panel plots (under construction)
 
 The name *ccsgp* stands for "Carbon Capture and Sequestration GnuPlot" as this
