@@ -9,16 +9,49 @@
 import numpy as np
 from myplot import MyPlot
 
-def make_plot(**kwargs):
+def make_plot(data, styles, properties, titles, **kwargs):
   """ main function to generate a 1D plot
 
-  - Kwargs:
-    name, title, debug,
-    data, styles, properties, titles,
-    key, x(y)label, x(y)r, x(y)log, vert_lines, labels
-  - explain format of kwargs.
+  .. note::
+     each dataset is represented by a numpy.array consisting of data points in
+     the format `[x, y, y_err, bin_width]`
 
-  :param labels: 'label text': [x-pos., y-pos., abs. placement yes/no]
+  .. note::
+     possible gnuplot styles: points, lines, linespoints, yerrorbars,
+     boxerrorbars
+
+  :param data: datasets 
+  :type data: list
+  :param styles: gnuplot styles for each dataset
+  :type styles: list
+  :param properties: gnuplot property strings for each dataset (lc, lw, pt ...)
+  :type properties: list
+  :param titles: legend/key titles for each dataset
+  :type titles: list
+
+  :param name: basename of output files
+  :type name: str
+  :param title: image title
+  :type title: str
+  :param debug: flag to switch to debug/verbose mode
+  :type debug: bool
+  :param key: legend/key options to be applied on top of default_key
+  :type key: list
+  :param xlabel: label for x-axis
+  :type xlabel: str
+  :param ylabel: label for y-axis
+  :type ylabel: str
+  :param xr: x-axis range
+  :type xr: list
+  :param yr: y-axis range
+  :type yr: list
+  :param xlog: make x-axis logarithmic
+  :type xlog: bool
+  :param ylog: make y-axis logarithmic
+  :type ylog: bool
+  :param vert_lines: vertical lines, format `'<x-value>': '<gnuplot style options>'`
+  :type vert_lines: dict
+  :param labels: labels, format `'label text': [x, y, abs. placement true/false]`
   :type labels: dict
   :returns: MyPlot
   """
@@ -27,7 +60,7 @@ def make_plot(**kwargs):
     title = kwargs.get('title', ''),
     debug = kwargs.get('debug', 0)
   )
-  plt.initData(**kwargs)
+  plt.initData(data, styles, properties, titles)
   plt.prepare_plot(**kwargs)
   plt.plot()
   return plt

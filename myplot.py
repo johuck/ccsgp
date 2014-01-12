@@ -27,6 +27,12 @@ class MyPlot(object):
   :type name: str
   :param debug: debug flag for verbose gnuplot output
   :type debug: bool
+  :ivar name: basename for output files
+  :ivar epsname: basename + '.eps'
+  :ivar gp: Gnuplot.Gnuplot instance
+  :ivar nPanels: number of panels in a multiplot
+  :ivar nVertLines: number of vertical lines
+  :ivar nLabels: number of labels
   """
   def __init__(self, name = 'test', title = '', debug = 0):
     self.name = name
@@ -35,7 +41,7 @@ class MyPlot(object):
     self.nPanels = 0
     self.nVertLines = 0
     self.nLabels = 0
-    self.setter(['title "%s"' % title] + basic_setup)
+    self._setter(['title "%s"' % title] + basic_setup)
 
   def _using(self, style):
     """determine string with columns to use
@@ -49,8 +55,8 @@ class MyPlot(object):
   def _plot_errs(self, data, style):
     """determine whether to plot errors separately
 
-    :param data: one dataset
-    :type data: numpy array of data points w/ format [x, y, dy, bw]
+    :param data: one dataset consisting of data points w/ format [x, y, dy, bw]
+    :type data: numpy.array 
     :param style: corresponding gnuplot style
     :type style: str
     :returns: True or False
@@ -64,8 +70,10 @@ class MyPlot(object):
     """generate special property string for errors
 
     - currently error bars are drawn in black
-    - TODO: give user the option to draw error bars in lighter color according
-      to the respective data points
+    
+    .. note::
+       in the future, give user the option to draw error bars in lighter color
+       according to the respective data points
 
     :param prop: property string of a dataset
     :type prop: str
@@ -92,6 +100,8 @@ class MyPlot(object):
     :type properties: list of str
     :param titles: key/legend titles for each dataset
     :type titles: list of strings
+    :var dataSets: zipped titles and data for hdf5 output
+    :var data: list of Gnuplot.Data including extra data sets for error plotting
     """
     # dataSets used in hdf5()
     self.dataSets = { (k, v) for k, v in izip(titles, data) if k }
@@ -112,7 +122,7 @@ class MyPlot(object):
     # zip main & secondary data and filter out None's
     self.data = filter(None, zip_flat(main_data, sec_data))
 
-  def setter(self, list):
+  def _setter(self, list):
     """convenience function to set a list of gnuplot options
 
     :param list: list of strings given to gnuplot's set command
@@ -125,7 +135,7 @@ class MyPlot(object):
     
     keys other than l, b, t, r are ignored (see config.default_margins)
     """
-    self.setter([
+    self._setter([
       '%smargin %f' % (
         k, kwargs.get(k, default_margins[k])
       ) for k in default_margins
@@ -166,7 +176,7 @@ class MyPlot(object):
     :type axis: str
     """
     if log:
-      self.setter([
+      self._setter([
         'logscale %s' % axis, 'grid m%stics' % axis,
         'format {0} "10^{%L}"'.format(axis)
       ])
@@ -210,7 +220,7 @@ class MyPlot(object):
   def prepare_plot(self, **kwargs):
     """prepare for plotting (calls all members of MyPlot)"""
     self.setMargins(**kwargs)
-    self.setter(kwargs.get('key', []))
+    self._setter(kwargs.get('key', []))
     for axis in ['x', 'y']:
       self.setAxisLabel(kwargs.get(axis + 'label', ''), axis = axis)
       self.setAxisRange(kwargs.get(axis + 'r'), axis = axis)
@@ -220,7 +230,7 @@ class MyPlot(object):
     for k, v in kwargs.get('labels', {}):
       self.setLabel(k, v[:1], v[-1])
 
-  def convert(self):
+  def _convert(self):
     """convert eps original into pdf, png and jpg format"""
     call(' '.join([
       'ps2pdf -dEPSCrop', self.epsname, self.name + '.pdf'
@@ -230,7 +240,7 @@ class MyPlot(object):
         'convert -density 150', self.name + '.pdf', self.name + ext
       ]), shell = True)
 
-  def hdf5(self):
+  def _hdf5(self):
     """write data contained in plot to HDF5 file
 
     - easy numpy import -> (savetxt) -> gnuplot
@@ -243,6 +253,8 @@ class MyPlot(object):
       - NOTE: literally type the 3 dots, replace dset_name
       - np.savetxt format: `fmt = '%.4f %.3e %.3e %.3e'`
       - save array to txt file: `np.savetxt('arr.dat', arr, fmt=fmt)`
+
+    :raises: ImportError
     """
     try:
       import h5py
@@ -255,18 +267,18 @@ class MyPlot(object):
       print 'h5py imported but error raised!'
       raise
 
-  def hardcopy(self):
+  def _hardcopy(self):
     """generate eps, convert to other formats and write data to hdf5"""
     self.gp.hardcopy(
       self.epsname, enhanced = 1, color = 1, mode = 'landscape', fontsize = 24
     )
-    self.convert()
-    self.hdf5()
+    self._convert()
+    self._hdf5()
 
   def plot(self):
     """plot and generate output files"""
     self.gp.plot(*self.data)
-    if self.nPanels < 1: self.hardcopy()
+    if self.nPanels < 1: self._hardcopy()
 
 
 ########################################################
@@ -278,7 +290,7 @@ class MyPlot(object):
 #      'size %f,1' % xPanProps[0], 'output "%s"' % plt.epsname,
 #      'multiplot'
 #    ]
-#    self.setter(panel_setup)
+#    self._setter(panel_setup)
 #
 #  def prepare_subfig(self):
 #    pan_wdth = xPanProps[1] * xPanProps[0]
