@@ -80,8 +80,8 @@ class MyPlot(object):
     :type prop: str
     :returns: property string for errors
     """
-    p = re.compile('lw \d')
-    lw = p.search(prop).group()[-1] if p.match() else '1'
+    m = re.compile('lw \d').search(prop)
+    lw = m.group()[-1] if m else '1'
     return 'yerrorbars pt 0 lt 1 lc 0 lw %s' % lw
 
   def initData(self, data, styles, properties, titles):
