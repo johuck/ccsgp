@@ -164,8 +164,14 @@ class MyPlot(object):
     :type axis: str
     """
     if rng is None:
-      vals = [ n for v in self.data for n in v[:, 1] ]
-      rng = [ min(vals), max(vals) ]
+      col = int(axis == 'y')
+      vals = [ n for v in self.dataSets.values() for n in v[:, col] ]
+      axMin, axMax = min(vals), max(vals)
+      add_rng = 0.1 * (axMax - axMin)
+      rng = [
+        axMin - add_rng if not self.axisLog[axis] else 0.9 * axMin,
+        axMax + add_rng if not self.axisLog[axis] else 1.1 * axMax,
+      ]
     self.gp('set %srange [%e:%e]' % (axis, rng[0], rng[1]))
 
   def setAxisLabel(self, label, axis = 'x'):
@@ -235,8 +241,8 @@ class MyPlot(object):
     self.setKeyOptions(kwargs.get('key', []))
     for axis in ['x', 'y']:
       self.setAxisLabel(kwargs.get(axis + 'label', ''), axis = axis)
-      self.setAxisRange(kwargs.get(axis + 'r'), axis = axis)
       self.setAxisLog(kwargs.get(axis + 'log'), axis = axis)
+      self.setAxisRange(kwargs.get(axis + 'r'), axis = axis)
     for k, v in kwargs.get('vert_lines', {}):
       self.setVerticalLine(float(k), v)
     for k, v in kwargs.get('labels', {}):
