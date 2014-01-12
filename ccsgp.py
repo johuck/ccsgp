@@ -7,14 +7,14 @@
 """
 
 import numpy as np
-from classes import MyPlot
+from myplot import MyPlot
 
 def make_plot(**kwargs):
   """ main function to generate a 1D plot
 
   - Kwargs:
     name, title, debug,
-    data, styles, properties, titles
+    data, styles, properties, titles,
     key, x(y)label, x(y)r, x(y)log, vert_lines, labels
   - explain format of kwargs.
 
