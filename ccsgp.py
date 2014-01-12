@@ -8,7 +8,7 @@
 
 import numpy as np
 import uncertainties.unumpy as unp
-from .classes import MyPlot, MyPlot2D
+from classes import MyPlot, MyPlot2D
 
 def getNumpyArr(x, a, bw):
   return np.array((x, unp.nominal_values(a), unp.std_devs(a), bw)).T
