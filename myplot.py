@@ -9,7 +9,6 @@
 import os, re
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
-from itertools import izip
 from utils import zip_flat
 from config import basic_setup, default_margins, xPanProps
 
@@ -104,10 +103,10 @@ class MyPlot(object):
     :var dataSets: zipped titles and data for hdf5 output
     :var data: list of Gnuplot.Data including extra data sets for error plotting
     """
-    # dataSets used in hdf5()
-    self.dataSets = dict( (k, v) for k, v in izip(titles, data) if k )
+    # dataSets used in hdf5() and setAxisRange
+    self.dataSets = dict( (k, v) for k, v in zip(titles, data) if k )
     # zip all input parameters for easier looping
-    zipped = izip(data, styles, properties, titles)
+    zipped = zip(data, styles, properties, titles)
     # uneven: main data points drawn second
     main_data = [
       Gnuplot.Data(
@@ -118,10 +117,11 @@ class MyPlot(object):
     sec_data = [
       Gnuplot.Data(
         d, inline = 1, using = self._using(s), with_ = self._with_errs(p)
-      ) if self._plot_errs(d, s) else None for d, s, p, t in zipped
+      ) if self._plot_errs(d, s) else None
+      for d, s, p, t in zipped
     ]
     # zip main & secondary data and filter out None's
-    self.data = filter(None, zip_flat(main_data, sec_data))
+    self.data = filter(None, zip_flat(sec_data, main_data))
 
   def _setter(self, list):
     """convenience function to set a list of gnuplot options
