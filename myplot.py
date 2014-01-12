@@ -144,6 +144,14 @@ class MyPlot(object):
       ) for k in default_margins
     ])
 
+  def setKeyOptions(self, key_opts):
+    """set key options
+
+    :param key_opts: strings for key/legend options
+    :type key_opts: list
+    """
+    self._setter(['key %s' % s for s in key_opts])
+
   def setAxisRange(self, rng, axis = 'x'):
     """set range for specified axis
 
@@ -224,7 +232,7 @@ class MyPlot(object):
   def prepare_plot(self, **kwargs):
     """prepare for plotting (calls all members of MyPlot)"""
     self.setMargins(**kwargs)
-    self._setter(kwargs.get('key', []))
+    self.setKeyOptions(kwargs.get('key', []))
     for axis in ['x', 'y']:
       self.setAxisLabel(kwargs.get(axis + 'label', ''), axis = axis)
       self.setAxisRange(kwargs.get(axis + 'r'), axis = axis)
