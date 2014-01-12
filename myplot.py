@@ -32,6 +32,7 @@ class MyPlot(object):
   :ivar nPanels: number of panels in a multiplot
   :ivar nVertLines: number of vertical lines
   :ivar nLabels: number of labels
+  :ivar axisLog: flags for logarithmic axes
   """
   def __init__(self, name = 'test', title = '', debug = 0):
     self.name = name
@@ -40,6 +41,7 @@ class MyPlot(object):
     self.nPanels = 0
     self.nVertLines = 0
     self.nLabels = 0
+    self.axisLog = { 'x': False, 'y': False }
     self._setter(['title "%s"' % title] + basic_setup)
 
   def _using(self, style):
@@ -176,10 +178,11 @@ class MyPlot(object):
     :param axis: axis which to set logarithmic
     :type axis: str
     """
+    self.axisLog[axis] = log
     if log:
       self._setter([
         'logscale %s' % axis, 'grid m%stics' % axis,
-        'format {0} "10^{%L}"'.format(axis)
+        'format {0} "10^{{%L}}"'.format(axis)
       ])
     else:
       self.gp('unset logscale %s' % axis)
