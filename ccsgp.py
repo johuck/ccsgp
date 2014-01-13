@@ -1,27 +1,15 @@
-"""
-.. module:: ccsgp
-   :platform: Unix, Windows
-   :synopsis: provides make_plot, repeat_plot (make_plot2D, make_panel)
-
-.. moduleauthor:: Patrick Huck <phuck@lbl.gov>
-"""
-
 import numpy as np
 from myplot import MyPlot
 
 def make_plot(data, styles, properties, titles, **kwargs):
   """ main function to generate a 1D plot
 
-  .. note::
-     each dataset is represented by a numpy.array consisting of data points in
-     the format `[x, y, y_err, bin_width]`
-
-  .. note::
-     possible gnuplot styles: points, lines, linespoints, yerrorbars,
-     boxerrorbars
-
-  .. note::
-     for symbol numbers to use in labels see http://bit.ly/1erBgIk
+  * each dataset is represented by a numpy array consisting of data points in
+    the format ``[x, y, y_err, bin_width]``
+  * possible gnuplot styles are points, lines, linespoints, yerrorbars,
+    boxerrorbars
+  * for symbol numbers to use in labels see http://bit.ly/1erBgIk
+  * TODO: include systematic uncertainties
 
   :param data: datasets 
   :type data: list
@@ -77,9 +65,7 @@ def make_plot(data, styles, properties, titles, **kwargs):
   return plt
 
 def repeat_plot(plt, name, **kwargs):
-  """repeat a plot with different props
-
-  same kwargs as make_plot.
+  """repeat a plot with different properties (kwargs see make_plot)
 
   :param plt: plot to repeat
   :type plt: MyPlot

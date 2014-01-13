@@ -1,11 +1,3 @@
-"""
-.. module:: classes
-   :platform: Unix, Windows
-   :synopsis: provides classes to use with ccsgp public functions
-
-.. moduleauthor:: Patrick Huck <phuck@lbl.gov>
-"""
-
 import os, re
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
@@ -15,7 +7,7 @@ from config import basic_setup, default_margins, xPanProps
 os.environ['GNUPLOT_PS_DIR'] = os.path.dirname(__file__)
 
 class MyPlot(object):
-  """base class for 1D and 2D plots
+  """base class
 
   - basic gnuplot setup (bars, grid, title, key, terminal, multiplot)
   - utility functions for general plotting
@@ -70,11 +62,9 @@ class MyPlot(object):
   def _with_errs(self, prop):
     """generate special property string for errors
 
-    - currently error bars are drawn in black
-    
-    .. note::
-       in the future, give user the option to draw error bars in lighter color
-       according to the respective data points
+    * currently error bars are drawn in black
+    * TODO: give user the option to draw error bars in lighter color
+      according to the respective data points
 
     :param prop: property string of a dataset
     :type prop: str

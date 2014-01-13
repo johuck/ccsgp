@@ -6,10 +6,7 @@ def getOpts(i):
   return 'lt 1 lw 4 ps 2 lc %s pt 18' % default_colors[i]
 
 def zip_flat(a, b):
-  """zip two lists and flattens the result
-
-  :returns: flatten list of elements in a & b alternately
-  """
+  """zips two lists and flattens the result"""
   return list(
     itertools.chain.from_iterable(zip(a, b))
   )
