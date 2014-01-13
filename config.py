@@ -23,7 +23,9 @@ basic_setup = [
   'key %s' % s for s in default_key
 ]
 
-default_margins = { 'l': 5, 'b': 1, 'r': 0.1, 't': 0.1 }
+default_margins = {
+  'lmargin': 3, 'bmargin': 1, 'rmargin': 0.1, 'tmargin': 0.1
+}
 
 xPanProps = [ 1.9, 0.23, 0.15 ]
 
