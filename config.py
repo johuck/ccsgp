@@ -1,10 +1,4 @@
 """
-.. module:: config
-   :platform: Unix, Windows
-   :synopsis: defines config variables for ccsgp
-
-.. moduleauthor:: Patrick Huck <phuck@lbl.gov>
-
 :var default_key: default options for legend/key
 :var basic_setup: bars, grid, terminal and default_key
 :var default_margins: default margins to define plot area
