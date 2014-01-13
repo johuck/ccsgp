@@ -136,12 +136,11 @@ class MyPlot(object):
   def setMargins(self, **kwargs):
     """set the margins
     
-    keys other than l, b, t, r are ignored (see config.default_margins)
+    keys other than l(b,t,r)margin are ignored (see config.default_margins)
     """
     self._setter([
-      '%smargin %f' % (
-        k, kwargs.get(k, default_margins[k])
-      ) for k in default_margins
+      '%s %f' % (k, kwargs.get(k, default_margins[k]))
+      for k in default_margins
     ])
 
   def setKeyOptions(self, key_opts):
