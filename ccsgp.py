@@ -56,6 +56,14 @@ def make_plot(data, styles, properties, titles, **kwargs):
   :type vert_lines: dict
   :param labels: labels, format `'label text': [x, y, abs. placement true/false]`
   :type labels: dict
+  :param lmargin: defines left margin size
+  :type lmargin: float
+  :param bmargin: defines bottom margin size
+  :type bmargin: float
+  :param rmargin: defines right margin size
+  :type rmargin: float
+  :param tmargin: defines top margin size
+  :type tmargin: float
   :returns: MyPlot
   """
   plt = MyPlot(
