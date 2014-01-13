@@ -263,7 +263,7 @@ class MyPlot(object):
     - easy numpy import -> (savetxt) -> gnuplot
     - export to ROOT objects
 
-    h5py howto:
+    h5py howto (see http://www.h5py.org/docs/intro/quick.html):
       - open file: `f = h5py.File(name, 'r')`
       - list datasets: `list(f)`
       - load entire dataset as np array: `arr = f['dst_name'][...]`
@@ -276,7 +276,8 @@ class MyPlot(object):
     try:
       import h5py
       f = h5py.File(self.name + '.hdf5', 'w')
-      for k, v in self.dataSets: f.create_dataset(k, data = v)
+      for k, v in self.dataSets.iteritems():
+        f.create_dataset(k, data = v)
       f.close()
     except ImportError:
       print 'install h5py to also save an hdf5 file of your plot!'
