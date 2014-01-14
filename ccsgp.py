@@ -52,6 +52,8 @@ def make_plot(data, styles, properties, titles, **kwargs):
   :type rmargin: float
   :param tmargin: defines top margin size
   :type tmargin: float
+  :param gpcalls: execute arbitrary gnuplot set commands
+  :type gpcalls: list
   :returns: MyPlot
   """
   plt = MyPlot(
@@ -61,6 +63,7 @@ def make_plot(data, styles, properties, titles, **kwargs):
   )
   plt.initData(data, styles, properties, titles)
   plt.prepare_plot(**kwargs)
+  plt._setter(kwargs.get('gpcalls', []))
   plt.plot()
   return plt
 
