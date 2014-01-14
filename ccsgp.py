@@ -79,6 +79,7 @@ def repeat_plot(plt, name, **kwargs):
   plt.gp('set terminal dumb')
   plt.epsname = name + '.eps'
   plt.prepare_plot(**kwargs)
+  plt._setter(kwargs.get('gpcalls', []))
   plt.plot()
   return plt
 
