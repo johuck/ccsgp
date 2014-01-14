@@ -232,10 +232,10 @@ class MyPlot(object):
       self.setAxisLabel(kwargs.get(axis + 'label', ''), axis = axis)
       self.setAxisLog(kwargs.get(axis + 'log'), axis = axis)
       self.setAxisRange(kwargs.get(axis + 'r'), axis = axis)
-    for k, v in kwargs.get('vert_lines', {}):
+    for k, v in kwargs.get('vert_lines', {}).iteritems():
       self.setVerticalLine(float(k), v)
-    for k, v in kwargs.get('labels', {}):
-      self.setLabel(k, v[:1], v[-1])
+    for k, v in kwargs.get('labels', {}).iteritems():
+      self.setLabel(k, v[:2], v[-1])
 
   def _convert(self):
     """convert eps original into pdf, png and jpg format"""
