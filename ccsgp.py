@@ -1,20 +1,16 @@
 import numpy as np
 from myplot import MyPlot
 
-def make_plot(data, styles, properties, titles, **kwargs):
+def make_plot(data, properties, titles, **kwargs):
   """ main function to generate a 1D plot
 
   * each dataset is represented by a numpy array consisting of data points in
-    the format ``[x, y, y_err, bin_width]``
-  * possible gnuplot styles are points, lines, linespoints, yerrorbars,
-    boxerrorbars
+    the format ``[x, y, dx, dy]``
   * for symbol numbers to use in labels see http://bit.ly/1erBgIk
   * TODO: include systematic uncertainties
 
   :param data: datasets 
   :type data: list
-  :param styles: gnuplot styles for each dataset
-  :type styles: list
   :param properties: gnuplot property strings for each dataset (lc, lw, pt ...)
   :type properties: list
   :param titles: legend/key titles for each dataset
@@ -61,7 +57,7 @@ def make_plot(data, styles, properties, titles, **kwargs):
     title = kwargs.get('title', ''),
     debug = kwargs.get('debug', 0)
   )
-  plt.initData(data, styles, properties, titles)
+  plt.initData(data, properties, titles)
   plt.prepare_plot(**kwargs)
   plt._setter(kwargs.get('gpcalls', []))
   plt.plot()
