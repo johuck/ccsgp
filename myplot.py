@@ -59,6 +59,9 @@ class MyPlot(object):
     :var error_sums: sum of x and y errors
     :returns: True or False
     """
+    if data.shape[1] > self.maxCols:
+      logging.critical('too many data columns (max = %d)' % self.maxCols)
+      sys.exit(1)
     if data.shape[1] < 3: return False
     self.error_sums = [
       data[:, i+2].sum() for i in xrange(self.maxCols-2)
@@ -103,10 +106,6 @@ class MyPlot(object):
     :var dataSets: zipped titles and data for hdf5 output
     :var data: list of Gnuplot.Data including extra data sets for error plotting
     """
-    # exit if wrong data format
-    if data.shape[1] > self.maxCols:
-      logging.critical('too many data columns (max = %d)' % self.maxCols)
-      sys.exit(1)
     # dataSets used in hdf5() and setAxisRange
     self.dataSets = dict( (k, v) for k, v in zip(titles, data) if k )
     # zip all input parameters for easier looping
