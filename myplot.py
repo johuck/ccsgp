@@ -1,4 +1,4 @@
-import os, re, sys
+import os, re, sys, logging
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
 from utils import zip_flat
@@ -34,7 +34,6 @@ class MyPlot(object):
     self.nVertLines = 0
     self.nLabels = 0
     self.axisLog = { 'x': False, 'y': False }
-    self.maxCols = 4
     self._setter(['title "%s"' % title] + basic_setup)
 
   def _using(self, data):
@@ -45,12 +44,16 @@ class MyPlot(object):
     :returns: '1:2:3', '1:2:4' or '1:2:3:4'
     """
     return ':'.join([
-      '%d' % (i+1) for i in xrange(self.maxCols)
+      '%d' % (i+1) for i in xrange(4)
       if i < 2 or (i >= 2 and self.error_sums[i-2] > 0)
     ])
 
+  def _sum_errs(self, data, i):
+    """convenience function to calculate sum of i-th column"""
+    return data[:, i].sum()
+
   def _plot_errs(self, data):
-    """determine whether to plot errors separately
+    """determine whether to plot primary errors separately
 
     plot errorbars if data has more than two columns which are not all zero
 
@@ -59,17 +62,17 @@ class MyPlot(object):
     :var error_sums: sum of x and y errors
     :returns: True or False
     """
-    if data.shape[1] > self.maxCols:
-      logging.critical('too many data columns (max = %d)' % self.maxCols)
+    if data.shape[1] > 5 or data.shape[1] == 3:
+      logging.critical(
+        '%d columns not allowed, use either 2, 4 or 5!' % data.shape[1]
+      )
       sys.exit(1)
     if data.shape[1] < 3: return False
-    self.error_sums = [
-      data[:, i+2].sum() for i in xrange(self.maxCols-2)
-    ]
+    self.error_sums = [ self._sum_errs(data, i+2) for i in xrange(2) ]
     return (sum(self.error_sums) > 0)
 
   def _with_errs(self, data, prop):
-    """generate special property string for errors
+    """generate special property string for primary errors
 
     * currently error bars are drawn in black
     * use same linewidth as for points
@@ -80,7 +83,7 @@ class MyPlot(object):
     :type data: numpy.array
     :param prop: property string of a dataset
     :type prop: str
-    :returns: property string for errors
+    :returns: property string for primary errors
     """
     m = re.compile('lw \d').search(prop)
     lw = m.group()[-1] if m else '1'
@@ -89,6 +92,24 @@ class MyPlot(object):
       if self.error_sums[int(axis=='y')] > 0
     ])
     return '%serrorbars pt 0 lt 1 lc 0 lw %s' % (xy, lw)
+
+  def _with_syserrs(self, prop):
+    """generate special property string for secondary errors
+
+    * draw box in same color as point/line color
+
+    :param prop: property string of a dataset
+    :type prop: str
+    :returns: property string for secondary errors
+    """
+    m_lw = re.compile('lw \d').search(prop)
+    lw = m_lw.group()[-1] if m_lw else '1'
+    m_lc = re.compile('lc \d').search(prop)
+    if not m_lc:
+      m_lc = re.compile('lc rgb "#[A-Fa-f0-9]{6}"').search(prop)
+    return 'candlesticks fs solid lw %s lt 1 %s' % (
+      lw, m_lc.group() if m_lc else 'lc 0'
+    )
 
   def initData(self, data, properties, titles):
     """initialize the data
@@ -103,31 +124,39 @@ class MyPlot(object):
     :type properties: list of str
     :param titles: key/legend titles for each dataset
     :type titles: list of strings
-    :var dataSets: zipped titles and data for hdf5 output
+    :var dataSets: zipped titles and data for hdf5 output and setAxisRange
     :var data: list of Gnuplot.Data including extra data sets for error plotting
     """
     # dataSets used in hdf5() and setAxisRange
     self.dataSets = dict( (k, v) for k, v in zip(titles, data) if k )
     # zip all input parameters for easier looping
     zipped = zip(data, properties, titles)
-    # 1.) extra data set for systematic uncertainties
-    # TODO
-    # 2.) extra data set to plot "primary" errors separately
-    sec_data = [
-      Gnuplot.Data(
-        d, inline = 1, using = self._using(d), with_ = self._with_errs(d, p)
-      ) if self._plot_errs(d) else None
-      for d, p, t in zipped
-    ]
-    # 3.) main data points drawn last
+    # main data points drawn last
     main_data = [
       Gnuplot.Data(# TODO: linespoints?
         d, inline = 1, title = t, using = '1:2', with_ = ' '.join(['points', p])
       ) for d, p, t in zipped
     ]
+    # extra data set to plot "primary" errors separately
+    prim_errs = [
+      Gnuplot.Data(
+        d, inline = 1, using = self._using(d), with_ = self._with_errs(d, p)
+      ) if self._plot_errs(d) else None
+      for d, p, t in zipped
+    ]
+    # extra data set for "secondary" errors (systematic uncertainties)
+    # TODO: automatically set boxwidth (relative to point width?)
+    self.gp('set boxwidth 0.03 absolute')
+    sec_errs = [
+      Gnuplot.Data(
+        d, inline = 1, using = '1:($2-$5):2:2:($2+$5)',
+        with_ = self._with_syserrs(p)
+      ) if self._sum_errs(d, 4) > 0 else None
+      for d, p, t in zipped
+    ]
     # zip main & secondary data and filter out None's
     # TODO: extend to more than two lists
-    self.data = filter(None, zip_flat(sec_data, main_data))
+    self.data = filter(None, zip_flat(sec_errs, prim_errs, main_data))
 
   def _setter(self, list):
     """convenience function to set a list of gnuplot options
