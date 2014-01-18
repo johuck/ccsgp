@@ -118,6 +118,8 @@ class MyPlot(object):
     - all lists given as parameters must have the same length.
     - each data set is drawn twice to allow for different colors for the errorbars
     - error bars use the same linewidth as data points and line color black
+    - use 'boxwidth 0.03 absolute' in gp_calls to set the width of the
+      uncertainty boxes
 
     :param data: data points w/ format [x, y, dx, dy] for each dataset
     :type data: list of numpy arrays
@@ -146,8 +148,6 @@ class MyPlot(object):
       for d, p, t in zipped
     ]
     # extra data set for "secondary" errors (systematic uncertainties)
-    # TODO: automatically set boxwidth (relative to point width?)
-    self.gp('set boxwidth 0.03 absolute')
     sec_errs = [
       Gnuplot.Data(
         d, inline = 1, using = '1:($2-$5):2:2:($2+$5)',
@@ -156,7 +156,6 @@ class MyPlot(object):
       for d, p, t in zipped
     ]
     # zip main & secondary data and filter out None's
-    # TODO: extend to more than two lists
     self.data = filter(None, zip_flat(sec_errs, prim_errs, main_data))
 
   def _setter(self, list):
