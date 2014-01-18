@@ -126,20 +126,24 @@ class MyPlot(object):
   def _with_syserrs(self, prop):
     """generate special property string for secondary errors
 
-    * draw box in same color as point/line color
+    * draw box in lighter color than point/line color
+    * does not support integer line colors, only hex
 
     :param prop: property string of a dataset
     :type prop: str
     :returns: property string for secondary errors
     """
+    m = re.compile('lc \d').search(prop)
+    if m:
+      raise Exception(
+        '"%s" not supported! use default_colors or hex specification' % m.group()
+      )
+    m_lc = re.compile('lc rgb "#[A-Fa-f0-9]{6}"').search(prop)
+    lc = self._colorscale(m_lc.group()[-7:-1])
     m_lw = re.compile('lw \d').search(prop)
     lw = m_lw.group()[-1] if m_lw else '1'
-    m_lc = re.compile('lc \d').search(prop)
-    if not m_lc:
-      m_lc = re.compile('lc rgb "#[A-Fa-f0-9]{6}"').search(prop)
-    return 'candlesticks fs solid lw %s lt 1 %s' % (
-      lw, m_lc.group() if m_lc else 'lc 0'
-    )
+    print lc
+    return 'candlesticks fs solid lw %s lt 1 lc %s' % (lw, lc)
 
   def initData(self, data, properties, titles):
     """initialize the data
