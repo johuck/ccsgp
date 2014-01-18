@@ -1,4 +1,4 @@
-import os, re, sys, logging
+import os, re, sys
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
 from utils import zip_flat
@@ -94,10 +94,9 @@ class MyPlot(object):
     :returns: True or False
     """
     if data.shape[1] > 5 or data.shape[1] == 3:
-      logging.critical(
+      raise Exception(
         '%d columns not allowed, use either 2, 4 or 5!' % data.shape[1]
       )
-      sys.exit(1)
     if data.shape[1] < 3: return False
     self.error_sums = [ self._sum_errs(data, i+2) for i in xrange(2) ]
     return (sum(self.error_sums) > 0)
