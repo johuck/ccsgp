@@ -4,6 +4,7 @@ from subprocess import call
 from utils import zip_flat
 from config import basic_setup, default_margins, xPanProps
 import numpy as np
+from collections import deque
 
 os.environ['GNUPLOT_PS_DIR'] = os.path.dirname(__file__)
 
@@ -26,6 +27,7 @@ class MyPlot(object):
   :ivar nVertLines: number of vertical lines
   :ivar nLabels: number of labels
   :ivar axisLog: flags for logarithmic axes
+  :ivar axisRange: axis range for respective axis (set in setAxisRange)
   """
   def __init__(self, name = 'test', title = '', debug = 0):
     self.name = name
@@ -35,6 +37,7 @@ class MyPlot(object):
     self.nVertLines = 0
     self.nLabels = 0
     self.axisLog = { 'x': False, 'y': False }
+    self.axisRange = { 'x': [], 'y': [] }
     self._setter(['title "%s"' % title] + basic_setup)
 
   def _clamp(self, val, minimum = 0, maximum = 255):
@@ -142,7 +145,6 @@ class MyPlot(object):
     lc = self._colorscale(m_lc.group()[-7:-1])
     m_lw = re.compile('lw \d').search(prop)
     lw = m_lw.group()[-1] if m_lw else '1'
-    print lc
     return 'candlesticks fs solid lw %s lt 1 lc %s' % (lw, lc)
 
   def initData(self, data, properties, titles):
@@ -189,7 +191,7 @@ class MyPlot(object):
       for d, p, t in zipped
     ]
     # zip main & secondary data and filter out None's
-    self.data = filter(None, zip_flat(sec_errs, prim_errs, main_data))
+    self.data = deque(filter(None, zip_flat(sec_errs, prim_errs, main_data)))
 
   def _setter(self, list):
     """convenience function to set a list of gnuplot options
@@ -244,6 +246,7 @@ class MyPlot(object):
         axMin - add_rng if not self.axisLog[axis] else 0.9 * axMin,
         axMax + add_rng if not self.axisLog[axis] else 1.1 * axMax,
       ]
+    self.axisRange[axis] = rng
     self.gp('set %srange [%e:%e]' % (axis, rng[0], rng[1]))
 
   def setAxisLabel(self, label, axis = 'x'):
@@ -289,6 +292,19 @@ class MyPlot(object):
       )
     )
 
+  def addHorizontalLine(self, y, opts):
+    """draw horizontal line
+
+    :param y: y-position
+    :type y: float
+    :param opts: line draw options
+    :type opts: str
+    """
+    d = np.array([ [self.axisRange['x'][i], y] for i in xrange(2) ])
+    self.data.appendleft(Gnuplot.Data(
+      d, inline = 1, title = '', using = '1:2', with_ = ' '.join(['lines', opts])
+    ))
+
   def setLabel(self, label, pos, abs_place = False):
     """draw a label into the figure
 
@@ -315,8 +331,10 @@ class MyPlot(object):
       self.setAxisLabel(kwargs.get(axis + 'label', ''), axis = axis)
       self.setAxisLog(kwargs.get(axis + 'log'), axis = axis)
       self.setAxisRange(kwargs.get(axis + 'r'), axis = axis)
-    for k, v in kwargs.get('vert_lines', {}).iteritems():
-      self.setVerticalLine(float(k), v)
+    for k, v in kwargs.get('lines', {}).iteritems():
+      axis, pos = k.split('=')
+      if axis == 'y': self.setVerticalLine(float(pos), v)
+      else: self.addHorizontalLine(float(pos), v)
     for k, v in kwargs.get('labels', {}).iteritems():
       self.setLabel(k, v[:2], v[-1])
 

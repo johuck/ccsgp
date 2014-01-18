@@ -7,7 +7,6 @@ def make_plot(data, properties, titles, **kwargs):
   * each dataset is represented by a numpy array consisting of data points in
     the format ``[x, y, dx, dy]``
   * for symbol numbers to use in labels see http://bit.ly/1erBgIk
-  * TODO: include systematic uncertainties
 
   :param data: datasets 
   :type data: list
@@ -36,8 +35,9 @@ def make_plot(data, properties, titles, **kwargs):
   :type xlog: bool
   :param ylog: make y-axis logarithmic
   :type ylog: bool
-  :param vert_lines: vertical lines, format `'<x-value>': '<gnuplot style options>'`
-  :type vert_lines: dict
+  :param lines: vertical and horizontal lines, format `'<x/y>=<x-value>':
+    '<gnuplot options>'`, horizontal = (along) x, vertical = (along) y
+  :type lines: dict
   :param labels: labels, format `'label text': [x, y, abs. placement true/false]`
   :type labels: dict
   :param lmargin: defines left margin size
