@@ -3,6 +3,7 @@ import Gnuplot, Gnuplot.funcutils
 from subprocess import call
 from utils import zip_flat
 from config import basic_setup, default_margins, xPanProps
+import numpy as np
 
 os.environ['GNUPLOT_PS_DIR'] = os.path.dirname(__file__)
 
@@ -197,8 +198,15 @@ class MyPlot(object):
     """
     if rng is None:
       col = int(axis == 'y')
-      vals = [ n for v in self.dataSets.values() for n in v[:, col] ]
-      axMin, axMax = min(vals), max(vals)
+      all_data = self.dataSets.values()
+      vals = np.array([ n for v in all_data for n in v[:, col] ])
+      evals = np.zeros(len(vals))
+      if axis == 'y':
+        evals = np.array([
+          max(n) if v.shape[1] >= 4 else 0.
+          for v in all_data for n in v[:, 3:]
+        ])
+      axMin, axMax = (vals-evals).min(), (vals+evals).max()
       add_rng = 0.1 * (axMax - axMin)
       rng = [
         axMin - add_rng if not self.axisLog[axis] else 0.9 * axMin,
