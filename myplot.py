@@ -34,6 +34,7 @@ class MyPlot(object):
     self.nVertLines = 0
     self.nLabels = 0
     self.axisLog = { 'x': False, 'y': False }
+    self.maxCols = 4
     self._setter(['title "%s"' % title] + basic_setup)
 
   def _using(self, data):
@@ -43,10 +44,10 @@ class MyPlot(object):
     :type data: numpy.array
     :returns: '1:2:3', '1:2:4' or '1:2:3:4'
     """
-    u = '1:2'
-    u += ':3' if data[:, 2].sum() > 0
-    u += ':4' if data[:, 3].sum() > 0
-    return u
+    return ':'.join([
+      '%d' % (i+1) for i in xrange(self.maxCols)
+      if i < 2 or (i >= 2 and self.error_sums[i-2] > 0)
+    ])
 
   def _plot_errs(self, data):
     """determine whether to plot errors separately
@@ -58,9 +59,10 @@ class MyPlot(object):
     :var error_sums: sum of x and y errors
     :returns: True or False
     """
-    ncols = data.shape[1]
-    if ncols < 3: return False
-    self.error_sums = [ data[:, i+2].sum() for i in xrange(2) ]
+    if data.shape[1] < 3: return False
+    self.error_sums = [
+      data[:, i+2].sum() for i in xrange(self.maxCols-2)
+    ]
     return (sum(self.error_sums) > 0)
 
   def _with_errs(self, data, prop):
@@ -79,8 +81,10 @@ class MyPlot(object):
     """
     m = re.compile('lw \d').search(prop)
     lw = m.group()[-1] if m else '1'
-    xy = 'x' if data[:, 2].sum() > 0 else ''
-    xy += 'y' if data[:, 3].sum() > 0
+    xy = ''.join([
+      axis for axis in ['x', 'y']
+      if self.error_sums[int(axis=='y')] > 0
+    ])
     return '%serrorbars pt 0 lt 1 lc 0 lw %s' % (xy, lw)
 
   def initData(self, data, properties, titles):
