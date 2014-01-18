@@ -1,4 +1,4 @@
-import os, re
+import os, re, sys
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
 from utils import zip_flat
@@ -103,6 +103,10 @@ class MyPlot(object):
     :var dataSets: zipped titles and data for hdf5 output
     :var data: list of Gnuplot.Data including extra data sets for error plotting
     """
+    # exit if wrong data format
+    if data.shape[1] > self.maxCols:
+      logging.critical('too many data columns (max = %d)' % self.maxCols)
+      sys.exit(1)
     # dataSets used in hdf5() and setAxisRange
     self.dataSets = dict( (k, v) for k, v in zip(titles, data) if k )
     # zip all input parameters for easier looping
