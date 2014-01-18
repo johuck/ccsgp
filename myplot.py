@@ -36,58 +36,62 @@ class MyPlot(object):
     self.axisLog = { 'x': False, 'y': False }
     self._setter(['title "%s"' % title] + basic_setup)
 
-  def _using(self, style):
+  def _using(self, data):
     """determine string with columns to use
 
-    :param style: gnuplot style
-    :type style: str
-    :returns: '1:2:3' or '1:2:3:4'
+    :param data: one dataset
+    :type data: numpy.array
+    :returns: '1:2:3', '1:2:4' or '1:2:3:4'
     """
-    return '1:2:3' if style != 'boxerrorbars' else '1:2:3:4'
+    u = '1:2'
+    u += ':3' if data[:, 2].sum() > 0
+    u += ':4' if data[:, 3].sum() > 0
+    return u
 
-  def _plot_errs(self, data, style):
+  def _plot_errs(self, data):
     """determine whether to plot errors separately
 
-    :param data: one dataset consisting of data points w/ format [x, y, dy, bw]
+    plot errorbars if data has more than two columns which are not all zero
+
+    :param data: one dataset
     :type data: numpy.array 
-    :param style: corresponding gnuplot style
-    :type style: str
+    :var error_sums: sum of x and y errors
     :returns: True or False
     """
-    sum_yerr = data.T[2].sum()
-    return (
-      style != 'boxerrorbars' and style != 'yerrorbars' and sum_yerr > 0
-    )
+    ncols = data.shape[1]
+    if ncols < 3: return False
+    self.error_sums = [ data[:, i+2].sum() for i in xrange(2) ]
+    return (sum(self.error_sums) > 0)
 
-  def _with_errs(self, prop):
+  def _with_errs(self, data, prop):
     """generate special property string for errors
 
     * currently error bars are drawn in black
+    * use same linewidth as for points
     * TODO: give user the option to draw error bars in lighter color
       according to the respective data points
 
+    :param data: one dataset
+    :type data: numpy.array
     :param prop: property string of a dataset
     :type prop: str
     :returns: property string for errors
     """
     m = re.compile('lw \d').search(prop)
     lw = m.group()[-1] if m else '1'
-    return 'yerrorbars pt 0 lt 1 lc 0 lw %s' % lw
+    xy = 'x' if data[:, 2].sum() > 0 else ''
+    xy += 'y' if data[:, 3].sum() > 0
+    return '%serrorbars pt 0 lt 1 lc 0 lw %s' % (xy, lw)
 
-  def initData(self, data, styles, properties, titles):
+  def initData(self, data, properties, titles):
     """initialize the data
 
     - all lists given as parameters must have the same length.
-    - supported gnuplot styles:
-      points, lines, linespoints, yerrorbars, boxerrorbars
-    - for the styles points, lines and linespoints each data set is drawn twice
-      to allow for different colors for the errorbars
+    - each data set is drawn twice to allow for different colors for the errorbars
     - error bars use the same linewidth as data points and line color black
 
-    :param data: data points w/ format [x, y, dy, bw] for each dataset 
+    :param data: data points w/ format [x, y, dx, dy] for each dataset
     :type data: list of numpy arrays
-    :param styles: plot styles for each dataset
-    :type styles: list of str
     :param properties: plot properties for each dataset (pt/lw/ps/lc...)
     :type properties: list of str
     :param titles: key/legend titles for each dataset
@@ -98,21 +102,24 @@ class MyPlot(object):
     # dataSets used in hdf5() and setAxisRange
     self.dataSets = dict( (k, v) for k, v in zip(titles, data) if k )
     # zip all input parameters for easier looping
-    zipped = zip(data, styles, properties, titles)
-    # uneven: main data points drawn second
-    main_data = [
-      Gnuplot.Data(
-        d, inline = 1, title = t, using = self._using(s), with_ = ' '.join([s, p])
-      ) for d, s, p, t in zipped
-    ]
-    # even: secondary data doubled up to plot errors separately
+    zipped = zip(data, properties, titles)
+    # 1.) extra data set for systematic uncertainties
+    # TODO
+    # 2.) extra data set to plot "primary" errors separately
     sec_data = [
       Gnuplot.Data(
-        d, inline = 1, using = self._using(s), with_ = self._with_errs(p)
-      ) if self._plot_errs(d, s) else None
-      for d, s, p, t in zipped
+        d, inline = 1, using = self._using(d), with_ = self._with_errs(d, p)
+      ) if self._plot_errs(d) else None
+      for d, p, t in zipped
+    ]
+    # 3.) main data points drawn last
+    main_data = [
+      Gnuplot.Data(# TODO: linespoints?
+        d, inline = 1, title = t, using = '1:2', with_ = ' '.join(['points', p])
+      ) for d, p, t in zipped
     ]
     # zip main & secondary data and filter out None's
+    # TODO: extend to more than two lists
     self.data = filter(None, zip_flat(sec_data, main_data))
 
   def _setter(self, list):
