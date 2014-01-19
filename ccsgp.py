@@ -40,7 +40,7 @@ def make_plot(data, properties, titles, **kwargs):
   :type lines: dict
   :param labels: labels, format `'label text': [x, y, abs. placement true/false]`
   :type labels: dict
-  :param lmargin: defines left margin size
+  :param lmargin: defines left margin size (relative to screen)
   :type lmargin: float
   :param bmargin: defines bottom margin size
   :type bmargin: float

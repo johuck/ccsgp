@@ -2,7 +2,7 @@ import os, re, sys
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
 from utils import zip_flat
-from config import basic_setup, default_margins, xPanProps
+from config import basic_setup, default_margins
 import numpy as np
 from collections import deque
 
@@ -31,6 +31,7 @@ class MyPlot(object):
   """
   def __init__(self, name = 'test', title = '', debug = 0):
     self.name = name
+    self.title = title
     self.epsname = name + '.eps'
     self.gp = Gnuplot.Gnuplot(debug = debug)
     self.nPanels = 0
@@ -204,10 +205,13 @@ class MyPlot(object):
   def setMargins(self, **kwargs):
     """set the margins
     
-    keys other than l(b,t,r)margin are ignored (see config.default_margins)
+    * keys other than l(b,t,r)margin are ignored (see config.default_margins)
+    * `tmargin` is adjusted if plot has title
     """
     self._setter([
-      '%s %f' % (k, kwargs.get(k, default_margins[k]))
+      '%s at screen %f' % (k, kwargs.get(
+        k, default_margins[k] if self.title else 0.99
+      ))
       for k in default_margins
     ])
 

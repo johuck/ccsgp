@@ -20,10 +20,8 @@ basic_setup = [
 ]
 
 default_margins = {
-  'lmargin': 3, 'bmargin': 1, 'rmargin': 0.1, 'tmargin': 0.1
+  'lmargin': 0.1, 'bmargin': 0.1, 'rmargin': 0.99, 'tmargin': 0.9
 }
-
-xPanProps = [ 1.9, 0.23, 0.15 ]
 
 default_colors = [
   # http://colorbrewer2.org/?type=qualitative&scheme=Set1&n=9
