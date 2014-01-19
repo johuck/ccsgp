@@ -392,25 +392,3 @@ class MyPlot(object):
     """plot and generate output files"""
     self.gp.plot(*self.data)
     if self.nPanels < 1: self._hardcopy()
-
-
-########################################################
-## TODO: below are needed for multiplot and under dev ##
-########################################################
-#  def prepare_multiplot(self):
-#    panel_setup = [
-#      'terminal postscript eps enhanced color "Helvetica" 24',
-#      'size %f,1' % xPanProps[0], 'output "%s"' % plt.epsname,
-#      'multiplot'
-#    ]
-#    self._setter(panel_setup)
-#
-#  def prepare_subfig(self):
-#    pan_wdth = xPanProps[1] * xPanProps[0]
-#    xorig = xPanProps[2] + self.nPanels * pan_wdth
-#    self.gp('set origin %f,0' % xorig)
-#    self.gp('set size %f,1' % pan_wdth)
-#    if self.nPanels > 0: self.gp('set ytics format " "')
-#    self.nPanels += 1
-#
-########################################################

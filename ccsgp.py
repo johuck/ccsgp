@@ -79,25 +79,41 @@ def repeat_plot(plt, name, **kwargs):
   plt.plot()
   return plt
 
-############################################
-## TODO: make_panel is under development! ##
-############################################
-#
-#def make_panel(name='test', log=[False,False], **kwargs):
-#  plt = MyPlot(name = name)
-#  plt.prepare_multiplot()
-#  plt.setLog(log)
-#  plt.setAxisRange(0, 1.15)
-#  plt.setAxisRange(1e-5, 20, axis = 'y')
-#  plt.setMargins(l = 0.3, b = 2, r = 0.5, t = 0.1)
-#  #plt.drawLabel('mass', [0.5,0.1])
-#  for t, d in kwargs['data'].iteritems(): # TODO: OrderedDict
-#    plt.prepare_subfig()
-#    plt.initData(
-#      data = [d], using = ['1:2:3'], main_opts = ['points'],
-#      extra_opts = ['lw 4 lt 1 pt 18', 'lw 4 lt 1 lc 0'],
-#      titles = [t]
-#    )
-#    plt.plot()
-#
-############################################
+def make_panel(dpt_dict, **kwargs):
+  """make a panel plot
+
+  * `name/title/debug` are global options used once to initialize the multiplot
+  * `key/x,ylabel/x,yr/x,ylog/lines/labels/gpcalls` are applied on each subplot
+  * same for `r,l,b,tmargin` where `r,lmargin` will be reset, however, to
+    allow for merged y-axes
+  * open questions:
+    * each subplot has a "title" / summarizing label (e.g. energy)
+      => show as title or label w/ position?
+    * where to show legend?
+    * separate or merged x-axis labels?
+
+  :param dpt_dict: OrderedDict w/ subplot titles as keys and lists of
+  make_plot's `data/properties/titles` as values, e.g.
+  `OrderedDict('subplot-title': [data, properties, titles], ...)`
+  :type dpt_dict: dict
+  """
+  plt = MyPlot(
+    name = kwargs.get('name', 'test'),
+    title = kwargs.get('title', ''),
+    debug = kwargs.get('debug', 0)
+  )
+  plt._setter([
+    'terminal postscript eps enhanced color "Helvetica" 24', # TODO: size 10cm,15cm
+    'output "%s"' % plt.epsname,
+    'multiplot layout 1,%d rowsfirst' % len(data)
+  ])
+  for subplot_title, dpt in dpt_dict.iteritems():
+    # TODO: do something with subplot_title
+    plt.initData(*dpt)
+    plt.prepare_plot(**kwargs)
+    # TODO: reset lmargin, rmargin for each panel
+    if self.nPanels > 0: self.gp('unset ytics')
+    plt._setter(kwargs.get('gpcalls', []))
+    plt.plot()
+    self.nPanels += 1
+  # TODO: hardcopy for multiplot
