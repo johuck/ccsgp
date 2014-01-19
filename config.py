@@ -14,7 +14,7 @@ default_key = [
 ]
 
 basic_setup = [
-  'bars small', 'grid lt 4 lc rgb "#C8C8C8"', 'terminal dumb'
+  'grid lt 4 lc rgb "#C8C8C8"', 'terminal dumb'
 ] + [
   'key %s' % s for s in default_key
 ]
