@@ -201,13 +201,17 @@ class MyPlot(object):
     """
     for s in list: self.gp('set %s' % s)
 
+  def getMargin(self, margin, **kwargs):
+    """get global margins"""
+    return kwargs.get(margin, default_margins[margin])
+
   def setMargins(self, **kwargs):
     """set the margins
     
     * keys other than l(b,t,r)margin are ignored (see config.default_margins)
     """
     self._setter([
-      '%s at screen %f' % (k, kwargs.get(k, default_margins[k]))
+      '%s at screen %f' % (k, self.getMargin(k, **kwargs))
       for k in default_margins
     ])
 
@@ -222,8 +226,10 @@ class MyPlot(object):
   def setAxisRange(self, rng, axis = 'x'):
     """set range for specified axis
 
-    automatically determines axis range to include all data points if range is
-    not given.
+    * automatically determines axis range to include all data points if range is
+      not given.
+    * logscale and secondary errors taken into account
+    * y-axis range determined for points within given x-axis range
 
     :param rng: lower and upper range limits
     :type rng: list
@@ -240,7 +246,14 @@ class MyPlot(object):
           max(n) if v.shape[1] >= 4 else 0.
           for v in all_data for n in v[:, 3:]
         ])
-      axMin, axMax = (vals-evals).min(), (vals+evals).max()
+        xvals = all_data[0][:, 0]
+        mask = (xvals > self.axisRange['x'][0]) & (xvals < self.axisRange['x'][1])
+        vals = vals[mask]
+        evals = evals[mask]
+        print vals, evals
+      axMin = (vals-evals).min()
+      if self.axisLog[axis] and not axMin > 0: axMin = vals.min()
+      axMax = (vals+evals).max()
       add_rng = 0.1 * (axMax - axMin)
       rng = [
         axMin - add_rng if not self.axisLog[axis] else 0.9 * axMin,
