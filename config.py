@@ -23,6 +23,9 @@ default_margins = {
   'lmargin': 0.05, 'bmargin': 0.05, 'rmargin': 0.99, 'tmargin': 0.99
 }
 
+# TODO: filledcurves, boxerrorbars
+supported_styles = [ 'points', 'lines', 'linespoints' ]
+
 default_colors = [
   # http://colorbrewer2.org/?type=qualitative&scheme=Set1&n=9
   'rgb "#e41a1c"', 'rgb "#377eb8"', 'rgb "#4daf4a"',

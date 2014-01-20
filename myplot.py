@@ -2,7 +2,7 @@ import os, re, sys
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
 from utils import zip_flat
-from config import basic_setup, default_margins
+from config import basic_setup, default_margins, supported_styles
 import numpy as np
 from collections import deque
 
@@ -82,6 +82,15 @@ class MyPlot(object):
       if i < 2 or (i >= 2 and self.error_sums[i-2] > 0)
     ])
 
+  def _with_main(self, prop):
+    """get the correct property string for main data"""
+    m = re.compile('^with \w+').search(prop)
+    style = m.group()[5:] if m else 'points'
+    mod_prop = re.sub(m.group(), '', prop) if m else prop
+    if style not in supported_styles:
+      raise Exception('gnuplot style %s not yet supported!' % style)
+    return ' '.join([style, mod_prop])
+
   def _sum_errs(self, data, i):
     """convenience function to calculate sum of i-th column"""
     return data[:, i].sum()
@@ -155,6 +164,10 @@ class MyPlot(object):
     - error bars use the same linewidth as data points and line color black
     - use 'boxwidth 0.03 absolute' in gp_calls to set the width of the
       uncertainty boxes
+    - use alternative gnuplot style if ``properties`` contains a style
+      specification in the form ``with <style>`` and if the style is in
+      ccsgp.config.supported_styles (style specification has to be at the
+      beginning of the property string!)
 
     :param data: data points w/ format [x, y, dx, dy] for each dataset
     :type data: list of numpy arrays
@@ -171,8 +184,8 @@ class MyPlot(object):
     zipped = zip(data, properties, titles)
     # main data points drawn last
     main_data = [
-      Gnuplot.Data(# TODO: linespoints?
-        d, inline = 1, title = t, using = '1:2', with_ = ' '.join(['points', p])
+      Gnuplot.Data(
+        d, inline = 1, title = t, using = '1:2', with_ = self._with_main(p)
       ) for d, p, t in zipped
     ]
     # extra data set to plot "primary" errors separately
