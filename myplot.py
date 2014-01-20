@@ -187,7 +187,7 @@ class MyPlot(object):
       Gnuplot.Data(
         d, inline = 1, using = '1:($2-$5):2:2:($2+$5)',
         with_ = self._with_syserrs(p)
-      ) if self._sum_errs(d, 4) > 0 else None
+      ) if d.shape[1] == 5 and self._sum_errs(d, 4) > 0 else None
       for d, p, t in zipped
     ]
     # zip main & secondary data and filter out None's
