@@ -112,7 +112,7 @@ def make_panel(dpt_dict, **kwargs):
   gap = 0.01
   for subplot_title, dpt in dpt_dict.iteritems():
     plt.gp('unset label')
-    plt.setLabel(subplot_title, [0.1, 0.9])
+    plt.setLabel('{/Helvetica-Bold %s}' % subplot_title, [0.1, 0.9])
     plt.initData(*dpt)
     plt.prepare_plot(**kwargs)
     lm = plt.getMargin('lmargin', **kwargs)
