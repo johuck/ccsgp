@@ -86,13 +86,15 @@ def make_panel(dpt_dict, **kwargs):
   * ``key/x,ylabel/x,yr/x,ylog/lines/labels/gpcalls`` are applied on each subplot
   * same for ``r,l,b,tmargin`` where ``r,lmargin`` will be reset, however, to
     allow for merged y-axes
+  * input: OrderedDict w/ subplot titles as keys and lists of make_plot's
+    ``data/properties/titles`` as values, see below
   * open questions:
     * each subplot has a "title" / summarizing label (e.g. energy)
       => show as title or label w/ position?
     * where to show legend?
     * separate or merged x-axis labels?
 
-  :param dpt_dict: OrderedDict w/ subplot titles as keys and lists of make_plot's ``data/properties/titles`` as values, e.g. ``OrderedDict('subplot-title': [data, properties, titles], ...)``
+  :param dpt_dict: ``OrderedDict('subplot-title': [data, properties, titles], ...)``
   :type dpt_dict: dict
   """
   plt = MyPlot(
@@ -101,22 +103,25 @@ def make_panel(dpt_dict, **kwargs):
     debug = kwargs.get('debug', 0)
   )
   nSubPlots = len(dpt_dict)
+  width = 20./3. * nSubPlots
   plt._setter([
-    'terminal postscript eps enhanced color "Helvetica" 24', # TODO: size 10cm,15cm
+    'terminal postscript eps enhanced color "Helvetica" 24 size %fcm,10cm' % width,
     'output "%s"' % plt.epsname,
     'multiplot layout 1,%d rowsfirst' % nSubPlots
   ])
   gap = 0.01
   for subplot_title, dpt in dpt_dict.iteritems():
-    # TODO: do something with subplot_title
+    plt.gp('unset label')
+    plt.setLabel(subplot_title, [0.1, 0.9])
     plt.initData(*dpt)
     plt.prepare_plot(**kwargs)
     lm = plt.getMargin('lmargin', **kwargs)
     rm = plt.getMargin('rmargin', **kwargs)
     w = (rm - lm) / nSubPlots
+    sub_lm = lm + plt.nPanels * w + gap/2.
+    sub_rm = lm + (plt.nPanels + 1) * w - gap/2.
     plt._setter([
-      'lmargin %f' % (lm + plt.nPanels * w + gap/2.),
-      'rmargin %f' % (lm + (plt.nPanels + 1) * w - gap/2.)
+      'lmargin at screen %f' % sub_lm, 'rmargin at screen %f' % sub_rm
     ])
     if plt.nPanels > 0:
       plt.gp('set format y " "')

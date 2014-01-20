@@ -250,7 +250,6 @@ class MyPlot(object):
         mask = (xvals > self.axisRange['x'][0]) & (xvals < self.axisRange['x'][1])
         vals = vals[mask]
         evals = evals[mask]
-        print vals, evals
       axMin = (vals-evals).min()
       if self.axisLog[axis] and not axMin > 0: axMin = vals.min()
       axMax = (vals+evals).max()
