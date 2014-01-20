@@ -70,25 +70,38 @@ class MyPlot(object):
     b = self._clamp(b * scalefactor)
     return 'rgb "#%02x%02x%02x"' % (r, g, b)
 
-  def _using(self, data):
+  def _get_style_mod_prop(self, prop):
+    """get style and modified property string"""
+    m = re.compile('^with \w+').search(prop)
+    style = m.group()[5:] if m else 'points'
+    mod_prop = re.sub(m.group(), '', prop) if m else prop
+    return style, mod_prop
+
+  def _using(self, data, prop = None):
     """determine string with columns to use
 
     :param data: one dataset
     :type data: numpy.array
+    :param prop: property string of a dataset
+    :type prop: str
     :returns: '1:2:3', '1:2:4' or '1:2:3:4'
     """
-    return ':'.join([
-      '%d' % (i+1) for i in xrange(4)
-      if i < 2 or (i >= 2 and self.error_sums[i-2] > 0)
-    ])
+    if not prop: # primary errors
+      return ':'.join([
+        '%d' % (i+1) for i in xrange(4)
+        if i < 2 or (i >= 2 and self.error_sums[i-2] > 0)
+      ])
+    else: # secondary errors
+      # filledcurves or candlesticka
+      style, mod_prop = self._get_style_mod_prop(prop)
+      return '1:($2-$5):($2+$5)' if style == 'filledcurves' else '1:($2-$5):2:2:($2+$5)'
 
   def _with_main(self, prop):
     """get the correct property string for main data"""
-    m = re.compile('^with \w+').search(prop)
-    style = m.group()[5:] if m else 'points'
-    mod_prop = re.sub(m.group(), '', prop) if m else prop
+    style, mod_prop = self._get_style_mod_prop(prop)
     if style not in supported_styles:
       raise Exception('gnuplot style %s not yet supported!' % style)
+    style = 'linespoints' if style == 'filledcurves' else style
     return ' '.join([style, mod_prop])
 
   def _sum_errs(self, data, i):
@@ -112,6 +125,15 @@ class MyPlot(object):
     if data.shape[1] < 3: return False
     self.error_sums = [ self._sum_errs(data, i+2) for i in xrange(2) ]
     return (sum(self.error_sums) > 0)
+
+  def _plot_syserrs(self, data):
+    """determine whether to plot secondary errors
+
+    :param data: one dataset
+    :type data: numpy.array
+    :returns: True or False
+    """
+    return data.shape[1] == 5 and self._sum_errs(data, 4) > 0
 
   def _with_errs(self, data, prop):
     """generate special property string for primary errors
@@ -154,7 +176,9 @@ class MyPlot(object):
     lc = self._colorscale(m_lc.group()[-7:-1]) if m_lc else '0'
     m_lw = re.compile('lw \d').search(prop)
     lw = m_lw.group()[-1] if m_lw else '1'
-    return 'candlesticks fs solid lw %s lt 1 lc %s' % (lw, lc)
+    style, mod_prop = self._get_style_mod_prop(prop)
+    style = 'filledcurves' if style == 'filledcurves' else 'candlesticks'
+    return '%s fs solid lw %s lt 1 lc %s' % (style, lw, lc)
 
   def initData(self, data, properties, titles):
     """initialize the data
@@ -185,22 +209,24 @@ class MyPlot(object):
     # main data points drawn last
     main_data = [
       Gnuplot.Data(
-        d, inline = 1, title = t, using = '1:2', with_ = self._with_main(p)
+        d, inline = 1, title = t, using = '1:2',
+        with_ = self._with_main(p)
       ) for d, p, t in zipped
     ]
     # extra data set to plot "primary" errors separately
     prim_errs = [
       Gnuplot.Data(
-        d, inline = 1, using = self._using(d), with_ = self._with_errs(d, p)
+        d, inline = 1, using = self._using(d),
+        with_ = self._with_errs(d, p)
       ) if self._plot_errs(d) else None
       for d, p, t in zipped
     ]
     # extra data set for "secondary" errors (systematic uncertainties)
     sec_errs = [
       Gnuplot.Data(
-        d, inline = 1, using = '1:($2-$5):2:2:($2+$5)',
+        d, inline = 1, using = self._using(d, p),
         with_ = self._with_syserrs(p)
-      ) if d.shape[1] == 5 and self._sum_errs(d, 4) > 0 else None
+      ) if self._plot_syserrs(d) else None
       for d, p, t in zipped
     ]
     # zip main & secondary data and filter out None's
