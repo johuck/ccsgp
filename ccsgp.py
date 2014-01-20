@@ -126,6 +126,7 @@ def make_panel(dpt_dict, **kwargs):
     if plt.nPanels > 0:
       plt.gp('set format y " "')
       plt.gp('unset ylabel')
+      plt.gp('unset key')
     plt._setter(kwargs.get('gpcalls', []))
     plt.nPanels += 1
     plt.plot()
