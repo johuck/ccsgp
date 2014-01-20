@@ -82,9 +82,9 @@ def repeat_plot(plt, name, **kwargs):
 def make_panel(dpt_dict, **kwargs):
   """make a panel plot
 
-  * `name/title/debug` are global options used once to initialize the multiplot
-  * `key/x,ylabel/x,yr/x,ylog/lines/labels/gpcalls` are applied on each subplot
-  * same for `r,l,b,tmargin` where `r,lmargin` will be reset, however, to
+  * ``name/title/debug`` are global options used once to initialize the multiplot
+  * ``key/x,ylabel/x,yr/x,ylog/lines/labels/gpcalls`` are applied on each subplot
+  * same for ``r,l,b,tmargin`` where ``r,lmargin`` will be reset, however, to
     allow for merged y-axes
   * open questions:
     * each subplot has a "title" / summarizing label (e.g. energy)
@@ -93,8 +93,8 @@ def make_panel(dpt_dict, **kwargs):
     * separate or merged x-axis labels?
 
   :param dpt_dict: OrderedDict w/ subplot titles as keys and lists of
-  make_plot's `data/properties/titles` as values, e.g.
-  `OrderedDict('subplot-title': [data, properties, titles], ...)`
+                   make_plot's ``data/properties/titles`` as values, e.g.
+                  ``OrderedDict('subplot-title': [data, properties, titles], ...)``
   :type dpt_dict: dict
   """
   plt = MyPlot(
@@ -102,18 +102,26 @@ def make_panel(dpt_dict, **kwargs):
     title = kwargs.get('title', ''),
     debug = kwargs.get('debug', 0)
   )
+  nSubPlots = len(dpt_dict)
   plt._setter([
     'terminal postscript eps enhanced color "Helvetica" 24', # TODO: size 10cm,15cm
     'output "%s"' % plt.epsname,
-    'multiplot layout 1,%d rowsfirst' % len(data)
+    'multiplot layout 1,%d rowsfirst' % nSubPlots
   ])
+  gap = 0.01
   for subplot_title, dpt in dpt_dict.iteritems():
     # TODO: do something with subplot_title
     plt.initData(*dpt)
     plt.prepare_plot(**kwargs)
-    # TODO: reset lmargin, rmargin for each panel
+    lm = kwargs.get('lmargin', default_margins['lmargin'])
+    rm = kwargs.get('rmargin', default_margins['rmargin'])
+    w = (rm - lm) / nSubPlots
+    self._setter([
+      'lmargin %f' % (lm + self.nPanels * w + gap/2.),
+      'rmargin %f' % (lm + (self.nPanels + 1) * w - gap/2.)
+    ])
     if self.nPanels > 0: self.gp('unset ytics')
     plt._setter(kwargs.get('gpcalls', []))
     plt.plot()
     self.nPanels += 1
-  # TODO: hardcopy for multiplot
+  self.gp('unset multiplot; set output')
