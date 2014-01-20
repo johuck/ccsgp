@@ -20,7 +20,7 @@ basic_setup = [
 ]
 
 default_margins = {
-  'lmargin': 0.1, 'bmargin': 0.1, 'rmargin': 0.99, 'tmargin': 0.9
+  'lmargin': 0.05, 'bmargin': 0.05, 'rmargin': 1., 'tmargin': 1.
 }
 
 default_colors = [
