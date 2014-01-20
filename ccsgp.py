@@ -92,9 +92,7 @@ def make_panel(dpt_dict, **kwargs):
     * where to show legend?
     * separate or merged x-axis labels?
 
-  :param dpt_dict: OrderedDict w/ subplot titles as keys and lists of
-                   make_plot's ``data/properties/titles`` as values, e.g.
-                  ``OrderedDict('subplot-title': [data, properties, titles], ...)``
+  :param dpt_dict: OrderedDict w/ subplot titles as keys and lists of make_plot's ``data/properties/titles`` as values, e.g. ``OrderedDict('subplot-title': [data, properties, titles], ...)``
   :type dpt_dict: dict
   """
   plt = MyPlot(
@@ -113,15 +111,17 @@ def make_panel(dpt_dict, **kwargs):
     # TODO: do something with subplot_title
     plt.initData(*dpt)
     plt.prepare_plot(**kwargs)
-    lm = kwargs.get('lmargin', default_margins['lmargin'])
-    rm = kwargs.get('rmargin', default_margins['rmargin'])
+    lm = plt.getMargin('lmargin', **kwargs)
+    rm = plt.getMargin('rmargin', **kwargs)
     w = (rm - lm) / nSubPlots
-    self._setter([
-      'lmargin %f' % (lm + self.nPanels * w + gap/2.),
-      'rmargin %f' % (lm + (self.nPanels + 1) * w - gap/2.)
+    plt._setter([
+      'lmargin %f' % (lm + plt.nPanels * w + gap/2.),
+      'rmargin %f' % (lm + (plt.nPanels + 1) * w - gap/2.)
     ])
-    if self.nPanels > 0: self.gp('unset ytics')
+    if plt.nPanels > 0:
+      plt.gp('set format y " "')
+      plt.gp('unset ylabel')
     plt._setter(kwargs.get('gpcalls', []))
+    plt.nPanels += 1
     plt.plot()
-    self.nPanels += 1
-  self.gp('unset multiplot; set output')
+  plt.gp('unset multiplot; set output')
