@@ -151,7 +151,7 @@ class MyPlot(object):
         '"%s" not supported! use default_colors or hex specification' % m.group()
       )
     m_lc = re.compile('lc rgb "#[A-Fa-f0-9]{6}"').search(prop)
-    lc = self._colorscale(m_lc.group()[-7:-1])
+    lc = self._colorscale(m_lc.group()[-7:-1]) if m_lc else '0'
     m_lw = re.compile('lw \d').search(prop)
     lw = m_lw.group()[-1] if m_lw else '1'
     return 'candlesticks fs solid lw %s lt 1 lc %s' % (lw, lc)
