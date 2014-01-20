@@ -391,13 +391,14 @@ class MyPlot(object):
 
   def _hardcopy(self):
     """generate eps, convert to other formats and write data to hdf5"""
-    self.gp.hardcopy(
-      self.epsname, enhanced = 1, color = 1, mode = 'landscape', fontsize = 24
-    )
+    if self.nPanels < 1:
+      self.gp.hardcopy(
+        self.epsname, enhanced = 1, color = 1, mode = 'landscape', fontsize = 24
+      )
     self._convert()
     self._hdf5()
 
   def plot(self):
     """plot and generate output files"""
     self.gp.plot(*self.data)
-    if self.nPanels < 1: self._hardcopy()
+    self._hardcopy()
