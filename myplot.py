@@ -331,6 +331,11 @@ class MyPlot(object):
       self.gp('unset logscale %s' % axis)
       self.gp('set format {0} "%g"'.format(axis))
 
+  def setAxisLogs(self, **kwargs):
+    """set axes logarithmic if requested"""
+    for axis in ['x', 'y']:
+      self.setAxisLog(kwargs.get(axis + 'log'), axis = axis)
+
   def setVerticalLine(self, x, opts):
     """draw a vertical line
 
@@ -383,7 +388,6 @@ class MyPlot(object):
     self.setKeyOptions(kwargs.get('key', []))
     for axis in ['x', 'y']:
       self.setAxisLabel(kwargs.get(axis + 'label', ''), axis = axis)
-      self.setAxisLog(kwargs.get(axis + 'log'), axis = axis)
       self.setAxisRange(kwargs.get(axis + 'r'), axis = axis)
     for k, v in kwargs.get('lines', {}).iteritems():
       axis, pos = k.split('=')

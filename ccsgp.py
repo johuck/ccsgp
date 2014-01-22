@@ -57,6 +57,7 @@ def make_plot(data, properties, titles, **kwargs):
     title = kwargs.get('title', ''),
     debug = kwargs.get('debug', 0)
   )
+  plt.setAxisLogs(**kwargs)
   plt.initData(data, properties, titles)
   plt.prepare_plot(**kwargs)
   plt._setter(kwargs.get('gpcalls', []))
@@ -74,6 +75,7 @@ def repeat_plot(plt, name, **kwargs):
   """
   plt.gp('set terminal dumb')
   plt.epsname = name + '.eps'
+  plt.setAxisLogs(**kwargs)
   plt.prepare_plot(**kwargs)
   plt._setter(kwargs.get('gpcalls', []))
   plt.plot()
@@ -113,6 +115,7 @@ def make_panel(dpt_dict, **kwargs):
   for subplot_title, dpt in dpt_dict.iteritems():
     plt.gp('unset label')
     plt.setLabel('{/Helvetica-Bold %s}' % subplot_title, [0.1, 0.9])
+    plt.setAxisLogs(**kwargs)
     plt.initData(*dpt)
     plt.prepare_plot(**kwargs)
     lm = plt.getMargin('lmargin', **kwargs)
