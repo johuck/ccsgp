@@ -155,6 +155,7 @@ class MyPlot(object):
       axis for axis in ['x', 'y']
       if self.error_sums[int(axis=='y')] > 0
     ])
+    # TODO: get linewidth for errorbar arrows?
     return '%serrorbars pt 0 lt 1 lc 0 lw %s' % (xy, lw)
 
   def _with_syserrs(self, prop):
@@ -206,7 +207,11 @@ class MyPlot(object):
     self.dataSets = dict( (k, v) for k, v in zip(titles, data) if k )
     # TODO: plot arrows for data points with error bars larger than resp. value
     if self.axisLog['y']:
-      for d in data: d[:,3][ d[:,1] - d[:,3] < 0 ] = 0
+      for d in data:
+        mask =  d[:,1] - d[:,3] < 0
+        for dp in d[mask]:
+          self.addArrow(dp[1] + dp[3], dp[1] - dp[3], '')
+        d[:,3][mask] = 0
     # zip all input parameters for easier looping
     zipped = zip(data, properties, titles)
     # main data points drawn last
