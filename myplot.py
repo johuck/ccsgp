@@ -204,6 +204,9 @@ class MyPlot(object):
     """
     # dataSets used in hdf5() and setAxisRange
     self.dataSets = dict( (k, v) for k, v in zip(titles, data) if k )
+    # TODO: plot arrows for data points with error bars larger than resp. value
+    if self.axisLog['y']:
+      for d in data: d[:,3][ d[:,1] - d[:,3] < 0 ] = 0
     # zip all input parameters for easier looping
     zipped = zip(data, properties, titles)
     # main data points drawn last

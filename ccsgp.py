@@ -35,7 +35,7 @@ def make_plot(data, properties, titles, **kwargs):
   :type xlog: bool
   :param ylog: make y-axis logarithmic
   :type ylog: bool
-  :param lines: vertical and horizontal lines, format `'<x/y>=<x-value>':
+  :param lines: vertical and horizontal lines, format `'<x/y>=<value>':
     '<gnuplot options>'`, horizontal = (along) x, vertical = (along) y
   :type lines: dict
   :param labels: labels, format `'label text': [x, y, abs. placement true/false]`
