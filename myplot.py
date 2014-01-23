@@ -429,6 +429,7 @@ class MyPlot(object):
       else: self.addHorizontalLine(float(pos), v)
     for k, v in kwargs.get('labels', {}).iteritems():
       self.setLabel(k, v[:2], v[-1])
+    for a in kwargs.get('arrows', []): self.setArrow(*a)
 
   def _convert(self):
     """convert eps original into pdf, png and jpg format"""
