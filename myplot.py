@@ -36,6 +36,7 @@ class MyPlot(object):
     self.nPanels = 0
     self.nVertLines = 0
     self.nLabels = 0
+    self.nArrows = 0
     self.axisLog = { 'x': False, 'y': False }
     self.axisRange = { 'x': [], 'y': [] }
     self._setter(['title "%s"' % title] + basic_setup)
@@ -205,12 +206,23 @@ class MyPlot(object):
     """
     # dataSets used in hdf5() and setAxisRange
     self.dataSets = dict( (k, v) for k, v in zip(titles, data) if k )
-    # TODO: plot arrows for data points with error bars larger than resp. value
+    # plot arrows for data points with error bars larger than resp. value
+    # TODO: lw/lt/lc are hardcoded! same for arrow length and offset.
+    arr_off, arr_len = 0.85, 0.2
     if self.axisLog['y']:
       for d in data:
         mask =  d[:,1] - d[:,3] < 0
         for dp in d[mask]:
-          self.addArrow(dp[1] + dp[3], dp[1] - dp[3], '')
+          arr_start = [ dp[0], dp[1] + dp[3] ]
+          arr_end = [ dp[0], arr_len * dp[1] if dp[1] > 0 else arr_len * arr_start[1] ]
+          if dp[1] > 0 and arr_start[1] > 0:
+            self.setArrow(
+              [ dp[0], dp[1] / arr_off ], arr_start,
+              'head size screen 0.005,90 lw 4 lt 1 lc 0 front'
+            )
+            self.setArrow(
+              [ dp[0], dp[1] * arr_off ], arr_end, 'head empty lw 4 lt 1 lc 0 front'
+            )
         d[:,3][mask] = 0
     # zip all input parameters for easier looping
     zipped = zip(data, properties, titles)
@@ -384,6 +396,23 @@ class MyPlot(object):
     self.gp(
       'set label %d "%s" %s %f, %f' % (
         self.nLabels, label, place, pos[0], pos[1]
+      )
+    )
+
+  def setArrow(self, p0, p1, prop):
+    """draw an arrow into the figure
+
+    :param p0: start point [x, y]
+    :type p0: list
+    :param p1: end point [x, y]
+    :type p1: list
+    :param prop: gnuplot property string for the arrow
+    :type prop: str
+    """
+    self.nArrows += 1
+    self.gp(
+      'set arrow %d from %g,%g to %g,%g %s' % (
+        self.nArrows, p0[0], p0[1], p1[0], p1[1], prop
       )
     )
 
