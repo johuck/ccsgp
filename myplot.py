@@ -26,6 +26,7 @@ class MyPlot(object):
   :ivar nPanels: number of panels in a multiplot
   :ivar nVertLines: number of vertical lines
   :ivar nLabels: number of labels
+  :ivar nArrows: number of arrows
   :ivar axisLog: flags for logarithmic axes
   :ivar axisRange: axis range for respective axis (set in setAxisRange)
   """

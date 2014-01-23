@@ -5,8 +5,11 @@ def make_plot(data, properties, titles, **kwargs):
   """ main function to generate a 1D plot
 
   * each dataset is represented by a numpy array consisting of data points in
-    the format ``[x, y, dx, dy]``
+    the format ``[x, y, dx, dy1, dy2]``, dy1 = statistical error, dy2 = systematic uncertainty
   * for symbol numbers to use in labels see http://bit.ly/1erBgIk
+  * lines format: `'<x/y>=<value>': '<gnuplot options>'`, horizontal = (along) x, vertical = (along) y
+  * labels format: `'label text': [x, y, abs. placement true/false]`
+  * arrows format: `[<x0>, <y0>], [<x1>, <y1>], '<gnuplot props>'`
 
   :param data: datasets 
   :type data: list
@@ -35,10 +38,11 @@ def make_plot(data, properties, titles, **kwargs):
   :type xlog: bool
   :param ylog: make y-axis logarithmic
   :type ylog: bool
-  :param lines: vertical and horizontal lines, format `'<x/y>=<value>':
-    '<gnuplot options>'`, horizontal = (along) x, vertical = (along) y
+  :param lines: vertical and horizontal lines
   :type lines: dict
-  :param labels: labels, format `'label text': [x, y, abs. placement true/false]`
+  :param arrows: arrows
+  :type arrows: list
+  :param labels: labels
   :type labels: dict
   :param lmargin: defines left margin size (relative to screen)
   :type lmargin: float
@@ -90,11 +94,8 @@ def make_panel(dpt_dict, **kwargs):
     allow for merged y-axes
   * input: OrderedDict w/ subplot titles as keys and lists of make_plot's
     ``data/properties/titles`` as values, see below
-  * open questions:
-    * each subplot has a "title" / summarizing label (e.g. energy)
-      => show as title or label w/ position?
-    * where to show legend?
-    * separate or merged x-axis labels?
+  * where to show legend?
+  * separate or merged x-axis labels?
 
   :param dpt_dict: ``OrderedDict('subplot-title': [data, properties, titles], ...)``
   :type dpt_dict: dict
