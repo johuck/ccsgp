@@ -52,6 +52,12 @@ def make_plot(data, properties, titles, **kwargs):
   :type rmargin: float
   :param tmargin: defines top margin size
   :type tmargin: float
+  :param arrow_offset: offset from data point for special error bars (see gp_panel)
+  :type arrow_offset: float
+  :param arrow_length: length of arrow from data point towards zero for special error bars (see gp_panel)
+  :type arrow_length: float
+  :param arrow_bar: width of vertical bar at end of special error bars (see gp_panel)
+  :type arrow_bar: float
   :param gpcalls: execute arbitrary gnuplot set commands
   :type gpcalls: list
   :returns: MyPlot
@@ -61,6 +67,7 @@ def make_plot(data, properties, titles, **kwargs):
     title = kwargs.get('title', ''),
     debug = kwargs.get('debug', 0)
   )
+  plt.setErrorArrows(**kwargs)
   plt.setAxisLogs(**kwargs)
   plt.initData(data, properties, titles)
   plt.prepare_plot(**kwargs)
@@ -79,6 +86,7 @@ def repeat_plot(plt, name, **kwargs):
   """
   plt.gp('set terminal dumb')
   plt.epsname = name + '.eps'
+  plt.setErrorArrows(**kwargs)
   plt.setAxisLogs(**kwargs)
   plt.prepare_plot(**kwargs)
   plt._setter(kwargs.get('gpcalls', []))
@@ -112,6 +120,7 @@ def make_panel(dpt_dict, **kwargs):
     'output "%s"' % plt.epsname,
     'multiplot layout 1,%d rowsfirst' % nSubPlots
   ])
+  plt.setErrorArrows(**kwargs)
   gap = 0.01
   for subplot_title, dpt in dpt_dict.iteritems():
     plt.gp('unset label')
@@ -131,6 +140,7 @@ def make_panel(dpt_dict, **kwargs):
       plt.gp('set format y " "')
       plt.gp('unset ylabel')
       plt.gp('unset key')
+      plt.gp('set noarrow')
     plt._setter(kwargs.get('gpcalls', []))
     plt.nPanels += 1
     plt.plot()

@@ -40,6 +40,9 @@ class MyPlot(object):
     self.nArrows = 0
     self.axisLog = { 'x': False, 'y': False }
     self.axisRange = { 'x': [], 'y': [] }
+    self.arrow_offset = 0.85
+    self.arrow_length = 0.2
+    self.arrow_bar = 0.005
     self._setter(['title "%s"' % title] + basic_setup)
 
   def _clamp(self, val, minimum = 0, maximum = 255):
@@ -209,8 +212,7 @@ class MyPlot(object):
     self.dataSets = dict( (k, v) for k, v in zip(titles, data) if k )
     # plot arrows for data points with error bars larger than resp. value
     # TODO: lw/lt/lc are hardcoded! same for arrow length and offset.
-    arr_off, arr_len = 0.85, 0.2
-    arr_upp_prop = 'head size screen 0.005,90 lw 4 lt 1 lc 0 front'
+    arr_upp_prop = 'head size screen %g,90 lw 4 lt 1 lc 0 front' % self.arrow_bar
     arr_low_prop = 'head empty lw 4 lt 1 lc 0 front'
     if self.axisLog['y']:
       for d in data:
@@ -218,13 +220,21 @@ class MyPlot(object):
         for dp in d[mask]:
           arr_start = [ dp[0], dp[1] + dp[3] ]
           if dp[1] > 0:
-            self.setArrow([ dp[0], dp[1] / arr_off ], arr_start, arr_upp_prop)
-            self.setArrow([ dp[0], dp[1] * arr_off ], [ dp[0], arr_len * dp[1] ], arr_low_prop)
+            self.setArrow(
+              [ dp[0], dp[1] / self.arrow_offset ], arr_start, arr_upp_prop
+            )
+            self.setArrow(
+              [ dp[0], dp[1] * self.arrow_offset ],
+              [ dp[0], self.arrow_length * dp[1] ], arr_low_prop
+            )
           elif arr_start[1] > 0:
-            self.setArrow([dp[0], (arr_len + 0.1) * arr_start[1]], arr_start, arr_upp_prop)
-            self.setArrow(arr_start, [dp[0], arr_len * arr_start[1]], arr_low_prop)
-          else:
-            print 'point omitted:', dp
+            self.setArrow(
+              [dp[0], (self.arrow_length + 0.1) * arr_start[1]], arr_start, arr_upp_prop
+            )
+            self.setArrow(
+              arr_start, [dp[0], self.arrow_length * arr_start[1]], arr_low_prop
+            )
+          else: print 'point omitted:', dp
         d[:,3][mask] = 0
     # zip all input parameters for easier looping
     zipped = zip(data, properties, titles)
@@ -417,6 +427,12 @@ class MyPlot(object):
         self.nArrows, p0[0], p0[1], p1[0], p1[1], prop
       )
     )
+
+  def setErrorArrows(self, **kwargs):
+    """reset properties of arrows used to plot special errors"""
+    self.arrow_offset = kwargs.get('arrow_offset', self.arrow_offset)
+    self.arrow_length = kwargs.get('arrow_length', self.arrow_length)
+    self.arrow_bar = kwargs.get('arrow_bar', self.arrow_bar)
 
   def prepare_plot(self, **kwargs):
     """prepare for plotting (calls all members of MyPlot)"""
