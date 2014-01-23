@@ -210,20 +210,21 @@ class MyPlot(object):
     # plot arrows for data points with error bars larger than resp. value
     # TODO: lw/lt/lc are hardcoded! same for arrow length and offset.
     arr_off, arr_len = 0.85, 0.2
+    arr_upp_prop = 'head size screen 0.005,90 lw 4 lt 1 lc 0 front'
+    arr_low_prop = 'head empty lw 4 lt 1 lc 0 front'
     if self.axisLog['y']:
       for d in data:
         mask =  d[:,1] - d[:,3] < 0
         for dp in d[mask]:
           arr_start = [ dp[0], dp[1] + dp[3] ]
-          arr_end = [ dp[0], arr_len * dp[1] if dp[1] > 0 else arr_len * arr_start[1] ]
-          if dp[1] > 0 and arr_start[1] > 0:
-            self.setArrow(
-              [ dp[0], dp[1] / arr_off ], arr_start,
-              'head size screen 0.005,90 lw 4 lt 1 lc 0 front'
-            )
-            self.setArrow(
-              [ dp[0], dp[1] * arr_off ], arr_end, 'head empty lw 4 lt 1 lc 0 front'
-            )
+          if dp[1] > 0:
+            self.setArrow([ dp[0], dp[1] / arr_off ], arr_start, arr_upp_prop)
+            self.setArrow([ dp[0], dp[1] * arr_off ], [ dp[0], arr_len * dp[1] ], arr_low_prop)
+          elif arr_start[1] > 0:
+            self.setArrow([dp[0], (arr_len + 0.1) * arr_start[1]], arr_start, arr_upp_prop)
+            self.setArrow(arr_start, [dp[0], arr_len * arr_start[1]], arr_low_prop)
+          else:
+            print 'point omitted:', dp
         d[:,3][mask] = 0
     # zip all input parameters for easier looping
     zipped = zip(data, properties, titles)
