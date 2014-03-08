@@ -468,9 +468,9 @@ class MyPlot(object):
     h5py howto (see http://www.h5py.org/docs/intro/quick.html):
       - open file: `f = h5py.File(name, 'r')`
       - list datasets: `list(f)`
-      - load entire dataset as np array: `arr = f['dst_name'][...]`
+      - load entire dataset as np array: `arr = f['dset_name'][...]`
       - NOTE: literally type the 3 dots, replace dset_name
-      - np.savetxt format: `fmt = '%.4f %.3e %.3e %.3e'`
+      - np.savetxt format: `fmt = '%.4f %.3e %.3e %.3e %.3e'`
       - save array to txt file: `np.savetxt('arr.dat', arr, fmt=fmt)`
 
     :raises: ImportError
@@ -487,6 +487,13 @@ class MyPlot(object):
       print 'h5py imported but error raised!'
       raise
 
+  def _ascii(self):
+    """write ascii file(s) w/ data contained in plot"""
+    fmt = '%.4f %.3e %.3e %.3e %.3e'
+    if not os.path.exists(self.name): os.makedirs(self.name)
+    for k, v in self.dataSets.iteritems():
+      np.savetxt(self.name + '/' + k + '.dat', v, fmt=fmt)
+
   def _hardcopy(self):
     """generate eps, convert to other formats and write data to hdf5"""
     if self.nPanels < 1:
@@ -495,6 +502,7 @@ class MyPlot(object):
       )
     self._convert()
     self._hdf5()
+    self._ascii()
 
   def plot(self):
     """plot and generate output files"""
