@@ -97,7 +97,9 @@ def make_panel(dpt_dict, **kwargs):
   """make a panel plot
 
   * ``name/title/debug`` are global options used once to initialize the multiplot
-  * ``key/x,ylabel/x,yr/x,ylog/lines/labels/gpcalls`` are applied on each subplot
+  * ``x,yr/x,ylog/lines/labels/gpcalls`` are applied on each subplot
+  * ``key/ylabel`` are only plotted in first subplot
+  * ``xlabel`` is centered over entire panel
   * same for ``r,l,b,tmargin`` where ``r,lmargin`` will be reset, however, to
     allow for merged y-axes
   * input: OrderedDict w/ subplot titles as keys and lists of make_plot's
@@ -115,6 +117,11 @@ def make_panel(dpt_dict, **kwargs):
   )
   nSubPlots = len(dpt_dict)
   width = 20./3. * nSubPlots
+  plt.gp(
+    'set label %d "%s" at screen 0.5,0.05 center' % (
+      100, kwargs.get('xlabel','')
+    )
+  )
   plt._setter([
     'terminal postscript eps enhanced color "Helvetica" 24 size %fcm,10cm' % width,
     'output "%s"' % plt.epsname,
@@ -123,11 +130,12 @@ def make_panel(dpt_dict, **kwargs):
   plt.setErrorArrows(**kwargs)
   gap = 0.01
   for subplot_title, dpt in dpt_dict.iteritems():
-    plt.gp('unset label')
+    if plt.nLabels > 0: plt.gp('unset label')
     plt.setLabel('{/Helvetica-Bold %s}' % subplot_title, [0.1, 0.9])
     plt.setAxisLogs(**kwargs)
     plt.initData(*dpt)
     plt.prepare_plot(**kwargs)
+    plt.gp('unset xlabel')
     lm = plt.getMargin('lmargin', **kwargs)
     rm = plt.getMargin('rmargin', **kwargs)
     w = (rm - lm) / nSubPlots
