@@ -128,7 +128,7 @@ def make_panel(dpt_dict, **kwargs):
     'multiplot layout 1,%d rowsfirst' % nSubPlots
   ])
   plt.setErrorArrows(**kwargs)
-  gap = 0.01
+  gap = 0.1 / width # both in cm
   for subplot_title, dpt in dpt_dict.iteritems():
     if plt.nLabels > 0: plt.gp('unset label')
     plt.setLabel('{/Helvetica-Bold %s}' % subplot_title, [0.1, 0.9])
