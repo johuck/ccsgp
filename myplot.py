@@ -43,6 +43,7 @@ class MyPlot(object):
     self.arrow_offset = 0.85
     self.arrow_length = 0.2
     self.arrow_bar = 0.005
+    self.dataSets = {}
     self._setter(['title "%s"' % title] + basic_setup)
 
   def _clamp(self, val, minimum = 0, maximum = 255):
@@ -186,7 +187,11 @@ class MyPlot(object):
     style = 'filledcurves' if style == 'filledcurves' else 'candlesticks'
     return '%s fs solid lw %s lt 1 lc %s' % (style, lw, lc)
 
-  def initData(self, data, properties, titles):
+  def _prettify(self, str):
+    """prettify string, remove special symbols"""
+    return re.compile(ur'[\W]+',re.UNICODE).sub('_',str.strip())
+
+  def initData(self, data, properties, titles, subplot_title = None):
     """initialize the data
 
     - all lists given as parameters must have the same length.
@@ -205,11 +210,17 @@ class MyPlot(object):
     :type properties: list of str
     :param titles: key/legend titles for each dataset
     :type titles: list of strings
-    :var dataSets: zipped titles and data for hdf5 output and setAxisRange
+    :param subplot_title: subplot title for panel plot case
+    :type subplot_title: str
+    :var dataSets: zipped titles and data for hdf5/ascii output and setAxisRange
     :var data: list of Gnuplot.Data including extra data sets for error plotting
     """
-    # dataSets used in hdf5() and setAxisRange
-    self.dataSets = dict( (k, v) for k, v in zip(titles, data) if k )
+    # dataSets used in _hdf5/_ascii and setAxisRange
+    self.dataSets.update(dict(
+      (k, v) if subplot_title is None else ('_'.join([
+        self._prettify(subplot_title), k
+      ]), v) for k, v in zip(titles, data) if k
+    )) # TODO: clean up subplot_title
     # plot arrows for data points with error bars larger than resp. value
     # TODO: lw/lt/lc are hardcoded! same for arrow length and offset.
     arr_upp_prop = 'head size screen %g,90 lw 4 lt 1 lc 0 front' % self.arrow_bar
@@ -489,10 +500,9 @@ class MyPlot(object):
 
   def _ascii(self):
     """write ascii file(s) w/ data contained in plot"""
-    fmt = '%.4f %.3e %.3e %.3e %.3e'
     if not os.path.exists(self.name): os.makedirs(self.name)
     for k, v in self.dataSets.iteritems():
-      np.savetxt(self.name + '/' + k + '.dat', v, fmt=fmt)
+      np.savetxt(self.name + '/' + k + '.dat', v, fmt='%.4e')
 
   def _hardcopy(self):
     """generate eps, convert to other formats and write data to hdf5"""

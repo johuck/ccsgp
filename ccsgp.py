@@ -133,7 +133,7 @@ def make_panel(dpt_dict, **kwargs):
     if plt.nLabels > 0: plt.gp('unset label')
     plt.setLabel('{/Helvetica-Bold %s}' % subplot_title, [0.1, 0.9])
     plt.setAxisLogs(**kwargs)
-    plt.initData(*dpt)
+    plt.initData(*dpt, subplot_title = subplot_title)
     plt.prepare_plot(**kwargs)
     plt.gp('unset xlabel')
     lm = plt.getMargin('lmargin', **kwargs)
