@@ -216,11 +216,14 @@ class MyPlot(object):
     :var data: list of Gnuplot.Data including extra data sets for error plotting
     """
     # dataSets used in _hdf5/_ascii and setAxisRange
-    self.dataSets.update(dict(
-      (k, v) if subplot_title is None else ('_'.join([
-        self._prettify(subplot_title), k
-      ]), v) for k, v in zip(titles, data) if k
-    )) # TODO: clean up subplot_title
+    for i, (k, v) in enumerate(zip(titles, data)):
+      key = k if k else 'graph' + str(i)
+      if subplot_title is not None: # multiplot
+        key = '_'.join([subplot_title, key])
+      if key in self.dataSets:
+        raise ValueError("duplicate key '{0}'!".format(k))
+      else:
+        self.dataSets[key] = v
     # plot arrows for data points with error bars larger than resp. value
     # TODO: lw/lt/lc are hardcoded! same for arrow length and offset.
     arr_upp_prop = 'head size screen %g,90 lw 4 lt 1 lc 0 front' % self.arrow_bar
@@ -502,7 +505,9 @@ class MyPlot(object):
     """write ascii file(s) w/ data contained in plot"""
     if not os.path.exists(self.name): os.makedirs(self.name)
     for k, v in self.dataSets.iteritems():
-      np.savetxt(self.name + '/' + k + '.dat', v, fmt='%.4e')
+      np.savetxt(
+        self.name + '/' + self._prettify(k) + '.dat', v, fmt='%.4e'
+      )
 
   def _hardcopy(self):
     """generate eps, convert to other formats and write data to hdf5"""
