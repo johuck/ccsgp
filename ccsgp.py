@@ -104,8 +104,7 @@ def make_panel(dpt_dict, **kwargs):
     allow for merged y-axes
   * input: OrderedDict w/ subplot titles as keys and lists of make_plot's
     ``data/properties/titles`` as values, see below
-  * where to show legend?
-  * separate or merged x-axis labels?
+  * ``layout`` = '<cols>x<rows>', defaults to horizontal panel if omitted
 
   :param dpt_dict: ``OrderedDict('subplot-title': [data, properties, titles], ...)``
   :type dpt_dict: dict
@@ -116,40 +115,50 @@ def make_panel(dpt_dict, **kwargs):
     debug = kwargs.get('debug', 0)
   )
   nSubPlots = len(dpt_dict)
-  width = 20./3. * nSubPlots
-  plt.gp(
-    'set label %d "%s" at screen 0.5,0.05 center' % (
-      100, kwargs.get('xlabel','')
-    )
-  )
   plt._setter([
-    'terminal postscript eps enhanced color "Helvetica" 24 size %fcm,10cm' % width,
+    'label 100 "%s" at screen 0.5,0.05 center' % kwargs.get('xlabel',''),
+    'label 101 "%s" at screen 0.05,0.5 rotate center' % kwargs.get('ylabel',''),
+  ])
+  nx_unit, ny_unit = 20./3., 10. # base size of one subplot
+  nx, ny = nSubPlots, 1 # horizontal panel by default
+  layout = kwargs.get('layout')
+  if layout is not None:
+    nx, ny = map(int, layout.split('x'))
+  width, height = nx_unit * nx, ny_unit * ny
+  plt._setter([
+    'terminal postscript eps enhanced color "Helvetica" 24 size %fcm,%fcm' % (width, height),
     'output "%s"' % plt.epsname,
-    'multiplot layout 1,%d rowsfirst' % nSubPlots
+    'multiplot layout %d,%d rowsfirst' % (ny, nx)
   ])
   plt.setErrorArrows(**kwargs)
-  gap = 0.1 / width # both in cm
+  xgap, ygap = 0.1 / width, 0.1 / height # both in cm
   for subplot_title, dpt in dpt_dict.iteritems():
     if plt.nLabels > 0: plt.gp('unset label')
     plt.setLabel('{/Helvetica-Bold %s}' % subplot_title, [0.1, 0.9])
     plt.setAxisLogs(**kwargs)
     plt.initData(*dpt, subplot_title = subplot_title)
     plt.prepare_plot(**kwargs)
-    plt.gp('unset xlabel')
     lm = plt.getMargin('lmargin', **kwargs)
     rm = plt.getMargin('rmargin', **kwargs)
-    w = (rm - lm) / nSubPlots
-    sub_lm = lm + plt.nPanels * w + gap/2.
-    sub_rm = lm + (plt.nPanels + 1) * w - gap/2.
-    plt._setter([
-      'lmargin at screen %f' % sub_lm, 'rmargin at screen %f' % sub_rm
-    ])
+    tm = plt.getMargin('tmargin', **kwargs)
+    bm = plt.getMargin('bmargin', **kwargs)
+    w, h = (rm - lm) / nx, (tm - bm) / ny
+    col, row = plt.nPanels % nx, plt.nPanels / nx
+    sub_lm = lm + col * w + xgap/2.
+    sub_rm = lm + (col + 1) * w - xgap/2.
+    sub_tm = tm - row * h - ygap/2.
+    sub_bm = tm - (row + 1) * h + ygap/2.
+    plt.gp('unset xlabel')
+    plt.gp('unset ylabel')
+    if col > 0: plt.gp('set format y " "')
+    if row+1 < ny: plt.gp('set format x " "')
     if plt.nPanels > 0:
-      plt.gp('set format y " "')
-      plt.gp('unset ylabel')
       plt.gp('unset key')
       plt.gp('set noarrow')
-    plt._setter(kwargs.get('gpcalls', []))
     plt.nPanels += 1
+    plt._setter([
+      'lmargin at screen %f' % sub_lm, 'rmargin at screen %f' % sub_rm,
+      'bmargin at screen %f' % sub_bm, 'tmargin at screen %f' % sub_tm
+    ] + kwargs.get('gpcalls', []))
     plt.plot()
   plt.gp('unset multiplot; set output')
