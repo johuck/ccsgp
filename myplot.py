@@ -44,6 +44,7 @@ class MyPlot(object):
     self.arrow_length = 0.2
     self.arrow_bar = 0.005
     self.dataSets = {}
+    self.size = '10in,7in'
     self._setter(['title "%s"' % title] + basic_setup)
 
   def _clamp(self, val, minimum = 0, maximum = 255):
@@ -450,6 +451,7 @@ class MyPlot(object):
 
   def prepare_plot(self, **kwargs):
     """prepare for plotting (calls all members of MyPlot)"""
+    if 'size' in kwargs: self.size = kwargs['size']
     self.setMargins(**kwargs)
     self.setKeyOptions(kwargs.get('key', []))
     for axis in ['x', 'y']:
@@ -512,9 +514,14 @@ class MyPlot(object):
   def _hardcopy(self):
     """generate eps, convert to other formats and write data to hdf5"""
     if self.nPanels < 1:
-      self.gp.hardcopy(
-        self.epsname, enhanced = 1, color = 1, mode = 'landscape', fontsize = 24
-      )
+      #self.gp.hardcopy(
+      #  self.epsname, enhanced = 1, color = 1, mode = 'landscape', fontsize = 24
+      #)
+      self._setter([
+        'terminal postscript landscape enhanced color 24 size %s' % self.size,
+        'output "%s"' % self.epsname,
+      ])
+      self.gp.refresh()
     self._convert()
     self._hdf5()
     self._ascii()
