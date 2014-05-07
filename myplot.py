@@ -32,7 +32,7 @@ class MyPlot(object):
   """
   def __init__(self, name = 'test', title = '', debug = 0):
     self.name = name
-    self.epsname = name + '.eps'
+    self.epsname = name + '.ps'
     self.gp = Gnuplot.Gnuplot(debug = debug)
     self.nPanels = 0
     self.nVertLines = 0
@@ -468,7 +468,7 @@ class MyPlot(object):
   def _convert(self):
     """convert eps original into pdf, png and jpg format"""
     call(' '.join([
-      'ps2pdf -dEPSCrop', self.epsname, self.name + '.pdf'
+      'ps2pdf', self.epsname, self.name + '.pdf'
     ]), shell = True)
     for ext in ['.png', '.jpg']:
       call(' '.join([
