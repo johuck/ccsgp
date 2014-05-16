@@ -125,6 +125,7 @@ def make_panel(dpt_dict, **kwargs):
   if layout is not None:
     nx, ny = map(int, layout.split('x'))
   width, height = nx_unit * nx, ny_unit * ny
+  nDanglPlots = nSubPlots%nx # number of plots "dangling" in last row
   plt._setter([
     'terminal postscript eps enhanced color "Helvetica" 24 size %fcm,%fcm' % (width, height),
     'output "%s"' % plt.epsname,
@@ -151,7 +152,9 @@ def make_panel(dpt_dict, **kwargs):
     plt.gp('unset xlabel')
     plt.gp('unset ylabel')
     if col > 0: plt.gp('set format y " "')
-    if row+1 < ny: plt.gp('set format x " "')
+    if row+1 < ny-1 or (
+        row+1 == ny-1 and nDanglPlots and col+1 <= nDanglPlots
+    ): plt.gp('set format x " "')
     if plt.nPanels > 0:
       plt.gp('unset key')
       plt.gp('set noarrow')
