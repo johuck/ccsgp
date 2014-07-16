@@ -5,6 +5,7 @@ from utils import zip_flat
 from config import basic_setup, default_margins, supported_styles
 import numpy as np
 from collections import deque
+from pint import UnitRegistry
 
 os.environ['GNUPLOT_PS_DIR'] = os.path.dirname(__file__)
 
@@ -466,9 +467,20 @@ class MyPlot(object):
     for a in kwargs.get('arrows', []): self.setArrow(*a)
 
   def _convert(self):
-    """convert eps original into pdf, png and jpg format"""
+    """convert eps/ps original into pdf, png and jpg format"""
+    ureg = UnitRegistry()
+    pdf_dims = [
+      int(ureg.parse_expression(s).to('point').magnitude)
+      for s in self.size.split(',')
+    ]
     call(' '.join([
-      'ps2pdf', self.epsname, self.name + '.pdf'
+      'gs', '-dBATCH', '-dNOPAUSE',
+      '-sOutputFile=%s.pdf' % (self.name),
+      '-sDEVICE=pdfwrite',
+      '-dDEVICEWIDTHPOINTS=%d' % (pdf_dims[1]),
+      '-dDEVICEHEIGHTPOINTS=%d' % (pdf_dims[0]),
+      '-c "<</PageOffset [-54 -54]>> setpagedevice"',
+      '-f', self.epsname
     ]), shell = True)
     for ext in ['.png', '.jpg']:
       call(' '.join([
