@@ -538,7 +538,7 @@ class MyPlot(object):
     self._hdf5()
     self._ascii()
 
-  def plot(self):
+  def plot(self, hardcopy = True):
     """plot and generate output files"""
     self.gp.plot(*self.data)
-    self._hardcopy()
+    if hardcopy: self._hardcopy()

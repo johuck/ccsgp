@@ -163,5 +163,6 @@ def make_panel(dpt_dict, **kwargs):
       'lmargin at screen %f' % sub_lm, 'rmargin at screen %f' % sub_rm,
       'bmargin at screen %f' % sub_bm, 'tmargin at screen %f' % sub_tm
     ] + kwargs.get('gpcalls', []))
-    plt.plot()
+    plt.plot(hardcopy = False)
+  plt._hardcopy()
   plt.gp('unset multiplot; set output')
