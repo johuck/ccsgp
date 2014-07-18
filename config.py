@@ -47,5 +47,11 @@ default_colors = [
   # http://stackoverflow.com/questions/17120363/default-colour-set-on-gnuplot-website
   'rgb "#ff0000"', 'rgb "#009e73"', 'rgb "#56b4e9"',
   'rgb "#e69f00"', 'rgb "#f0e442"', 'rgb "#0072b2"',
-  'rgb "#e51e10"', 'rgb "#000000"', 'rgb "#7f7f7f"'
+  'rgb "#e51e10"', 'rgb "#000000"', 'rgb "#7f7f7f"',
+  # grayscale
+  'rgb "#eeeeee"', 'rgb "#dddddd"', 'rgb "#cccccc"',
+  'rgb "#bbbbbb"', 'rgb "#aaaaaa"', 'rgb "#999999"',
+  'rgb "#888888"', 'rgb "#777777"', 'rgb "#666666"',
+  'rgb "#555555"', 'rgb "#444444"', 'rgb "#333333"',
+  'rgb "#222222"', 'rgb "#111111"', 'rgb "#000000"',
 ]
