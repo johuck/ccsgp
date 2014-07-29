@@ -13,8 +13,8 @@ automatically into pdf, png and jpg formats for easy inclusion in presentations
 and papers. In addition, the user can decide to save the data contained in each
 image into hdf5 files for easy access via numpy. The function `repeat_plot`
 allows the user replot a specific graph with different properties, like axis
-ranges for instance. A ``make_panel`` user function to ease plotting of panel
-images with merged axes is currently under development.
+ranges for instance. The ``make_panel`` user function facilitates plotting of
+1D- or 2D-panel images with merged axes.
 
 The name *ccsgp* stands for "Carbon Capture and Sequestration GnuPlot" as this
 library started off in the context of my wife's research_.  I knew how to produce
