@@ -4,7 +4,7 @@ from config import default_colors
 def getOpts(i):
   """convience function for easy access to gnuplot property string"""
   nr_colors = len(default_colors)
-  if i >= nr_colors: i -= nr_colors # avoid index out of range error
+  if i >= nr_colors: i = i%nr_colors # avoid index out of range error
   return 'lt 1 lw 4 ps 2 lc %s pt 18' % default_colors[i]
 
 def zip_flat(a, b, c=None):
