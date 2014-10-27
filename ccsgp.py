@@ -152,7 +152,7 @@ def make_panel(dpt_dict, **kwargs):
     plt.gp('unset xlabel')
     plt.gp('unset ylabel')
     if col > 0: plt.gp('set format y " "')
-    if row+1 < ny-1 or (
+    if ( row < ny-1 and not nDanglPlots ) or (
         row+1 == ny-1 and nDanglPlots and col+1 <= nDanglPlots
     ): plt.gp('set format x " "')
     if plt.nPanels > 0:
