@@ -105,6 +105,7 @@ def make_panel(dpt_dict, **kwargs):
   * input: OrderedDict w/ subplot titles as keys and lists of make_plot's
     ``data/properties/titles`` as values, see below
   * ``layout`` = '<cols>x<rows>', defaults to horizontal panel if omitted
+  * ``key_subplot_id`` sets the desired subplot to put the key in
 
   :param dpt_dict: ``OrderedDict('subplot-title': [data, properties, titles], ...)``
   :type dpt_dict: dict
@@ -133,6 +134,16 @@ def make_panel(dpt_dict, **kwargs):
   ])
   plt.setErrorArrows(**kwargs)
   xgap, ygap = 0.1 / width, 0.1 / height # both in cm
+  key_subplot_id = kwargs.get('key_subplot_id', 0)
+  if nDanglPlots > 0 and key_subplot_id > len(dpt_dict)-1: # allow for key in dangling panel
+      cp_key = dpt_dict.keys()[0]
+      xr = kwargs.get('xr') 
+      if xr is not None: xfake = xr[0] - 0.5 * (xr[1]-xr[0])
+      else: xfake = 1.
+      dpt_dict.update({'': [
+          [ np.array([[xfake, 1, 0, 0, 0]]) for d in dpt_dict[cp_key][0] ],
+          dpt_dict[cp_key][1], dpt_dict[cp_key][2]
+      ]})
   for subplot_title, dpt in dpt_dict.iteritems():
     if plt.nLabels > 0: plt.gp('unset label')
     plt.setLabel('{/Helvetica-Bold %s}' % subplot_title, [0.1, 0.9])
@@ -156,13 +167,20 @@ def make_panel(dpt_dict, **kwargs):
         row+1 == ny-1 and nDanglPlots and col+1 <= nDanglPlots
     ): plt.gp('set format x " "')
     if plt.nPanels > 0:
-      plt.gp('unset key')
       plt.gp('set noarrow')
+    if plt.nPanels != key_subplot_id:
+      plt.gp('unset key')
     plt.nPanels += 1
     plt._setter([
       'lmargin at screen %f' % sub_lm, 'rmargin at screen %f' % sub_rm,
       'bmargin at screen %f' % sub_bm, 'tmargin at screen %f' % sub_tm
     ] + kwargs.get('gpcalls', []))
+    if plt.nPanels-1 == key_subplot_id:
+      plt.gp('set format x " "')
+      plt.gp('unset border')
+      plt.gp('unset xtics')
+      plt.gp('unset ytics')
+      plt.gp('unset object')
     plt.plot(hardcopy = False)
   plt._hardcopy()
   plt.gp('unset multiplot; set output')
