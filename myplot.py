@@ -102,7 +102,12 @@ class MyPlot(object):
     else: # secondary errors
       # filledcurves or candlesticka
       style, mod_prop = self._get_style_mod_prop(prop)
-      return '1:($2-$5):($2+$5)' if style == 'filledcurves' else '1:($2-$5):2:2:($2+$5)'
+      if style == 'filledcurves':
+        return '1:($2-$5):($2+$5)'
+      else:
+        low_lim = '(($2-$5)>0)?($2-$5):1e-20' \
+                if self.axisLog['y'] else '($2-$5)'
+        return '1:%s:2:2:($2+$5)' % low_lim
 
   def _with_main(self, prop):
     """get the correct property string for main data"""
