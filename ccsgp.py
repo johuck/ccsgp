@@ -175,7 +175,7 @@ def make_panel(dpt_dict, **kwargs):
       'lmargin at screen %f' % sub_lm, 'rmargin at screen %f' % sub_rm,
       'bmargin at screen %f' % sub_bm, 'tmargin at screen %f' % sub_tm
     ] + kwargs.get('gpcalls', []))
-    if plt.nPanels-1 == key_subplot_id:
+    if nDanglPlots > 0 and plt.nPanels-1 == key_subplot_id:
       plt.gp('set format x " "')
       plt.gp('unset border')
       plt.gp('unset xtics')
