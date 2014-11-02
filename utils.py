@@ -7,7 +7,12 @@ def getOpts(i):
   if i >= nr_colors: i = i%nr_colors # avoid index out of range error
   return 'lt 1 lw 4 ps 2 lc %s pt 18' % default_colors[i]
 
-def zip_flat(a, b, c=None):
-  """zips two or three lists and flattens the result"""
-  zipped = zip(a, b) if c is None else zip(a, b, c)
+def zip_flat(a, b, c=None, d=None):
+  """zips 2-4 lists and flattens the result"""
+  if c is None and d is None:
+      zipped = zip(a, b)
+  elif d is None:
+      zipped = zip(a, b, c)
+  else:
+      zipped = zip(a, b, c, d)
   return list(itertools.chain.from_iterable(zipped))
