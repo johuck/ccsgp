@@ -2,10 +2,9 @@ import os, re, sys
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
 from utils import zip_flat
-from config import basic_setup, default_margins, supported_styles
+from config import basic_setup, supported_styles, ureg
 import numpy as np
 from collections import deque
-from pint import UnitRegistry
 
 os.environ['GNUPLOT_PS_DIR'] = os.path.dirname(__file__)
 
@@ -45,7 +44,7 @@ class MyPlot(object):
     self.arrow_length = 0.2
     self.arrow_bar = 0.005
     self.dataSets = {}
-    self.size = '10in,7in'
+    self.size = None
     self._setter(['title "%s"' % title] + basic_setup)
 
   def _clamp(self, val, minimum = 0, maximum = 255):
@@ -293,18 +292,18 @@ class MyPlot(object):
     """
     for s in list: self.gp('set %s' % s)
 
-  def getMargin(self, margin, **kwargs):
-    """get global margins"""
-    return kwargs.get(margin, default_margins[margin])
-
   def setMargins(self, **kwargs):
     """set the margins
     
-    * keys other than l(b,t,r)margin are ignored (see config.default_margins)
+    * keys other than l(b,t,r)margin are ignored
+    * if margin not given leave to gnuplot
     """
+    order = ['l', 'b', 'r', 't']
+    margins = dict((k, kwargs.get(k)) for k in order)
     self._setter([
-      '%s at screen %f' % (k, self.getMargin(k, **kwargs))
-      for k in default_margins
+        '%smargin at screen %f' % (k,v)
+        for k,v in margins.items()
+        if v is not None
     ])
 
   def setKeyOptions(self, key_opts):
@@ -455,10 +454,11 @@ class MyPlot(object):
     self.arrow_length = kwargs.get('arrow_length', self.arrow_length)
     self.arrow_bar = kwargs.get('arrow_bar', self.arrow_bar)
 
-  def prepare_plot(self, **kwargs):
+  def prepare_plot(self, margins=True, **kwargs):
     """prepare for plotting (calls all members of MyPlot)"""
-    if 'size' in kwargs: self.size = kwargs['size']
-    self.setMargins(**kwargs)
+    if self.size is None:
+        self.size = kwargs.get('size', default_size)
+    if margins: self.setMargins(**kwargs)
     self.setKeyOptions(kwargs.get('key', []))
     for axis in ['x', 'y']:
       self.setAxisLabel(kwargs.get(axis + 'label', ''), axis = axis)
@@ -473,7 +473,6 @@ class MyPlot(object):
 
   def _convert(self):
     """convert eps/ps original into pdf, png and jpg format"""
-    ureg = UnitRegistry()
     pdf_dims = [
       int(ureg.parse_expression(s).to('point').magnitude)
       for s in self.size.split(',')
@@ -484,7 +483,7 @@ class MyPlot(object):
       '-sDEVICE=pdfwrite',
       '-dDEVICEWIDTHPOINTS=%d' % (pdf_dims[1]),
       '-dDEVICEHEIGHTPOINTS=%d' % (pdf_dims[0]),
-      '-c "<</PageOffset [-54 -54]>> setpagedevice"',
+      '-c "<</PageOffset [-50 -50]>> setpagedevice"',
       '-f', self.epsname
     ]), shell = True)
     for ext in ['.png', '.jpg']:

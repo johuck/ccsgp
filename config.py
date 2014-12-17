@@ -8,6 +8,8 @@
 .. _palette: http://colorbrewer2.org/
 """
 
+default_size = '7in,10in'
+
 default_key = [
   'spacing 1.2', 'samplen 1.5', 'reverse Left',
   'box lw 2', 'height 0.5', 'font ",22"'
@@ -18,10 +20,6 @@ basic_setup = [
 ] + [
   'key %s' % s for s in default_key
 ]
-
-default_margins = {
-  'lmargin': 0.05, 'bmargin': 0.05, 'rmargin': 0.99, 'tmargin': 0.99
-}
 
 # TODO: boxerrorbars
 supported_styles = [ '', 'points', 'lines', 'linespoints', 'filledcurves' ]
@@ -55,3 +53,6 @@ default_colors = [
   'rgb "#555555"', 'rgb "#444444"', 'rgb "#333333"',
   'rgb "#222222"', 'rgb "#111111"', 'rgb "#000000"',
 ]
+
+from pint import UnitRegistry
+ureg = UnitRegistry()

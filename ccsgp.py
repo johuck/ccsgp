@@ -1,5 +1,6 @@
 import numpy as np
 from myplot import MyPlot
+from config import ureg, default_size
 
 def make_plot(data, properties, titles, **kwargs):
   """ main function to generate a 1D plot
@@ -116,16 +117,25 @@ def make_panel(dpt_dict, **kwargs):
     debug = kwargs.get('debug', 0)
   )
   nSubPlots = len(dpt_dict)
+  plt.size = kwargs.get('size', default_size)
+  height, width = [
+      float(ureg.parse_expression(s).to('cm').magnitude)
+      for s in plt.size.split(',')
+  ]
+  text_inch = ureg.parse_expression('24point').to('cm').magnitude
+  lm = kwargs.get('lmargin', 2.2*text_inch/width)
+  bm = kwargs.get('bmargin', 1.8*text_inch/height)
+  rm = kwargs.get('rmargin', 0.99)
+  tm = kwargs.get('tmargin', 0.99)
+  xlabel, ylabel = kwargs.get('xlabel',''), kwargs.get('ylabel','')
   plt._setter([
-    'label 100 "%s" at screen 0.5,0.05 center' % kwargs.get('xlabel',''),
-    'label 101 "%s" at screen 0.05,0.5 rotate center' % kwargs.get('ylabel',''),
+    'label 100 "%s" at screen %f,%f rotate center' % (ylabel, lm/2/2.2, (bm+tm)/2),
+    'label 101 "%s" at screen %f,%f center' % (xlabel, (lm+rm)/2, bm/2/1.8),
   ])
-  nx_unit, ny_unit = 20./3., 10. # base size of one subplot
   nx, ny = nSubPlots, 1 # horizontal panel by default
   layout = kwargs.get('layout')
-  if layout is not None:
-    nx, ny = map(int, layout.split('x'))
-  width, height = nx_unit * nx, ny_unit * ny
+  if layout is not None: nx, ny = map(int, layout.split('x'))
+  w, h = (rm - lm) / nx, (tm - bm) / ny
   nDanglPlots = nSubPlots%nx # number of plots "dangling" in last row
   plt._setter([
     'terminal postscript eps enhanced color "Helvetica" 24 size %fcm,%fcm' % (width, height),
@@ -149,12 +159,7 @@ def make_panel(dpt_dict, **kwargs):
     plt.setLabel('{/Helvetica-Bold %s}' % subplot_title, [0.1, 0.9])
     plt.setAxisLogs(**kwargs)
     plt.initData(*dpt, subplot_title = subplot_title)
-    plt.prepare_plot(**kwargs)
-    lm = plt.getMargin('lmargin', **kwargs)
-    rm = plt.getMargin('rmargin', **kwargs)
-    tm = plt.getMargin('tmargin', **kwargs)
-    bm = plt.getMargin('bmargin', **kwargs)
-    w, h = (rm - lm) / nx, (tm - bm) / ny
+    plt.prepare_plot(margins=False, **kwargs)
     col, row = plt.nPanels % nx, plt.nPanels / nx
     sub_lm = lm + col * w + xgap/2.
     sub_rm = lm + (col + 1) * w - xgap/2.
