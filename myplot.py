@@ -2,7 +2,7 @@ import os, re, sys
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
 from utils import zip_flat
-from config import basic_setup, supported_styles, ureg
+from config import basic_setup, supported_styles, ureg, default_size
 import numpy as np
 from collections import deque
 
