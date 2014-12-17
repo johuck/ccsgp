@@ -299,7 +299,7 @@ class MyPlot(object):
     * if margin not given leave to gnuplot
     """
     order = ['l', 'b', 'r', 't']
-    margins = dict((k, kwargs.get(k)) for k in order)
+    margins = dict((k, kwargs.get(k+'margin')) for k in order)
     self._setter([
         '%smargin at screen %f' % (k,v)
         for k,v in margins.items()
