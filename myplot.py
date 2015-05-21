@@ -234,34 +234,34 @@ class MyPlot(object):
     # TODO: lw/lt/lc are hardcoded! same for arrow length and offset.
     arr_upp_prop = 'head size screen %g,90 lw 4 lt 1 lc 0 front' % self.arrow_bar
     arr_low_prop = 'head empty lw 4 lt 1 lc 0 front'
-    if self.axisLog['y']:
-      for d in data:
-        mask =  d[:,1] - d[:,3] < 0
-        for dp in d[mask]:
-          arr_start = [ dp[0], dp[1] + dp[3] ]
-          if dp[1] > 0:
-            self.setArrow(
-              [ dp[0], dp[1] / self.arrow_offset ], arr_start, arr_upp_prop
-            )
-            self.setArrow(
-              [ dp[0], dp[1] * self.arrow_offset ],
-              [ dp[0], self.arrow_length * dp[1] ], arr_low_prop
-            )
-          elif arr_start[1] > 0:
-            self.setArrow(
-              [dp[0], (self.arrow_length + 0.1) * arr_start[1]], arr_start, arr_upp_prop
-            )
-            self.setArrow(
-              arr_start, [dp[0], self.arrow_length * arr_start[1]], arr_low_prop
-            )
-          else: print 'point omitted:', dp
-        d[:,3][mask] = 0
+    #if self.axisLog['y']:
+    #  for d in data:
+    #    mask =  d[:,1] - d[:,3] < 0
+    #    for dp in d[mask]:
+    #      arr_start = [ dp[0], dp[1] + dp[3] ]
+    #      if dp[1] > 0:
+    #        self.setArrow(
+    #          [ dp[0], dp[1] / self.arrow_offset ], arr_start, arr_upp_prop
+    #        )
+    #        self.setArrow(
+    #          [ dp[0], dp[1] * self.arrow_offset ],
+    #          [ dp[0], self.arrow_length * dp[1] ], arr_low_prop
+    #        )
+    #      elif arr_start[1] > 0:
+    #        self.setArrow(
+    #          [dp[0], (self.arrow_length + 0.1) * arr_start[1]], arr_start, arr_upp_prop
+    #        )
+    #        self.setArrow(
+    #          arr_start, [dp[0], self.arrow_length * arr_start[1]], arr_low_prop
+    #        )
+    #      else: print 'point omitted:', dp
+    #    d[:,3][mask] = 0
     # zip all input parameters for easier looping
     zipped = zip(data, properties, titles)
     # main data points drawn last
     main_data = [
       Gnuplot.Data(
-        d, inline = 1, title = t, using = '1:2',
+          d, inline = 1, title = t, using = '1:2:4:(2*$3)',
         with_ = self._with_main(p)
       ) for d, p, t in zipped
     ]
@@ -350,7 +350,11 @@ class MyPlot(object):
         axMax + add_rng if not self.axisLog[axis] else 1.1 * axMax,
       ]
     self.axisRange[axis] = rng
-    self.gp('set %srange [%e:%e]' % (axis, rng[0], rng[1]))
+    #sgn_idx = (self.nPanels%4)/2
+    #if axis == 'y' and sgn_idx == 1:
+    #    self.gp('set %srange [%e:%e] reverse' % (axis, rng[0], rng[1]))
+    #else:
+    self.gp('set %srange [%e:%e] noreverse' % (axis, rng[0], rng[1]))
 
   def setAxisLabel(self, label, axis = 'x'):
     """set label for specified axis
@@ -372,10 +376,12 @@ class MyPlot(object):
     """
     self.axisLog[axis] = log
     if log:
-      self._setter([
-        'logscale %s' % axis, 'grid m%stics' % axis,
-        'format {0} "10^{{%L}}"'.format(axis)
-      ])
+      self._setter(['logscale %s' % axis, 'grid m%stics' % axis])
+      #sgn_idx = (self.nPanels%4)/2
+      #if axis == 'y' and sgn_idx == 1:
+      #    self._setter(['format {0} "-10^{{%L}}"'.format(axis)])
+      #else:
+      self._setter(['format {0} "10^{{%L}}"'.format(axis)])
     else:
       self.gp('unset logscale %s' % axis)
       self.gp('set format {0} "%g"'.format(axis))
@@ -409,7 +415,7 @@ class MyPlot(object):
     :type opts: str
     """
     d = np.array([ [self.axisRange['x'][i], y] for i in xrange(2) ])
-    self.data.appendleft(Gnuplot.Data(
+    self.data.append(Gnuplot.Data(
       d, inline = 1, title = '', using = '1:2', with_ = ' '.join(['lines', opts])
     ))
 
@@ -425,6 +431,7 @@ class MyPlot(object):
     """
     self.nLabels += 1
     place = 'at' if abs_place else 'at graph'
+    print self.nLabels, label
     self.gp(
       'set label %d "%s" %s %f, %f' % (
         self.nLabels, label, place, pos[0], pos[1]

@@ -156,7 +156,8 @@ def make_panel(dpt_dict, **kwargs):
       ]})
   for subplot_title, dpt in dpt_dict.iteritems():
     if plt.nLabels > 0: plt.gp('unset label')
-    plt.setLabel('{/Helvetica-Bold %s}' % subplot_title, [0.1, 0.9])
+    #plt.setLabel('{/Helvetica-Bold %s}' % subplot_title, [0.1, 0.9])
+    plt.setLabel(subplot_title, [0.1, 0.9])
     plt.setAxisLogs(**kwargs)
     plt.initData(*dpt, subplot_title = subplot_title)
     plt.prepare_plot(margins=False, **kwargs)
@@ -165,14 +166,17 @@ def make_panel(dpt_dict, **kwargs):
     sub_rm = lm + (col + 1) * w - xgap/2.
     sub_tm = tm - row * h - ygap/2.
     sub_bm = tm - (row + 1) * h + ygap/2.
+    sgn_idx = (plt.nPanels%4)/2
+    #if sgn_idx == 0: sub_bm -= ygap/2.
+    #elif sgn_idx == 1: sub_tm += ygap/2.
     plt.gp('unset xlabel')
     plt.gp('unset ylabel')
     if col > 0: plt.gp('set format y " "')
     if ( row < ny-1 and not nDanglPlots ) or (
         row+1 == ny-1 and nDanglPlots and col+1 <= nDanglPlots
     ): plt.gp('set format x " "')
-    if plt.nPanels > 0:
-      plt.gp('set noarrow')
+    #if plt.nPanels == 2:
+    #  plt.gp('set noarrow')
     if plt.nPanels != key_subplot_id:
       plt.gp('unset key')
     plt.nPanels += 1
@@ -180,6 +184,10 @@ def make_panel(dpt_dict, **kwargs):
       'lmargin at screen %f' % sub_lm, 'rmargin at screen %f' % sub_rm,
       'bmargin at screen %f' % sub_bm, 'tmargin at screen %f' % sub_tm
     ] + kwargs.get('gpcalls', []))
+    #if plt.nPanels > 1:
+    #  #for i in [5, 6, 7]: plt.gp('unset label %d' % i)
+    #  for i in [4, 6, 8]: plt.gp('unset label %d' % i)
+    #if sgn_idx == 0: plt.gp('unset label %d' % plt.nPanels)
     if nDanglPlots > 0 and plt.nPanels-1 == key_subplot_id:
       plt.gp('set format x " "')
       plt.gp('unset border')
