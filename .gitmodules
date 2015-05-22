@@ -1,0 +1,3 @@
+[submodule "Gnuplot"]
+	path = Gnuplot
+	url = git@github.com:tschaume/gnuplot-py.git
