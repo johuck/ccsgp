@@ -337,7 +337,7 @@ class MyPlot(object):
           max(n) if v.shape[1] >= 4 else 0.
           for v in all_data for n in v[:, 3:]
         ])
-        xvals = all_data[0][:, 0]
+        xvals = np.array([n for v in all_data for n in v[:, 0]])
         mask = (xvals > self.axisRange['x'][0]) & (xvals < self.axisRange['x'][1])
         vals = vals[mask]
         evals = evals[mask]
