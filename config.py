@@ -22,8 +22,9 @@ basic_setup = [
 ]
 
 # TODO: boxerrorbars
-supported_styles = [ '', 'points', 'lines', 'linespoints', 'filledcurves',
-                    'boxes' ]
+supported_styles = [
+    '', 'points', 'lines', 'linespoints', 'filledcurves', 'boxes'
+]
 
 default_colors = [
   # http://colorbrewer2.org/?type=qualitative&scheme=Set1&n=9
