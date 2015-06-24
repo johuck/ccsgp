@@ -35,6 +35,10 @@ def make_plot(data, properties, titles, **kwargs):
   :type xr: list
   :param yr: y-axis range
   :type yr: list
+  :param xreverse: reverse x-axis range 
+  :type xreverse: str
+  :param yreverse: reverse x-axis range
+  :type yreverse: str
   :param xlog: make x-axis logarithmic
   :type xlog: bool
   :param ylog: make y-axis logarithmic

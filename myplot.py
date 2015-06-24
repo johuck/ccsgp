@@ -326,6 +326,8 @@ class MyPlot(object):
     :type rng: list
     :param axis: axis to which to apply range
     :type axis: str
+    :param reverse: reverse axis range
+    :type reverse: str
     """
     if rng is None:
       col = int(axis == 'y')
