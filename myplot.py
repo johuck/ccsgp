@@ -314,7 +314,7 @@ class MyPlot(object):
     """
     self._setter(['key %s' % s for s in key_opts])
 
-  def setAxisRange(self, rng, axis = 'x'):
+  def setAxisRange(self, rng, axis = 'x', reverse = False):
     """set range for specified axis
 
     * automatically determines axis range to include all data points if range is
@@ -350,7 +350,7 @@ class MyPlot(object):
         axMax + add_rng if not self.axisLog[axis] else 1.1 * axMax,
       ]
     self.axisRange[axis] = rng
-    self.gp('set %srange [%e:%e]' % (axis, rng[0], rng[1]))
+    self.gp('set %srange [%e:%e] %s' % (axis, rng[0], rng[1], 'reverse' if reverse else ''))
 
   def setAxisLabel(self, label, axis = 'x'):
     """set label for specified axis
@@ -462,7 +462,10 @@ class MyPlot(object):
     self.setKeyOptions(kwargs.get('key', []))
     for axis in ['x', 'y']:
       self.setAxisLabel(kwargs.get(axis + 'label', ''), axis = axis)
-      self.setAxisRange(kwargs.get(axis + 'r'), axis = axis)
+      self.setAxisRange(
+          kwargs.get(axis + 'r'), axis = axis,
+          reverse = kwargs.get(axis + 'reverse', False)
+      )
     for k, v in kwargs.get('lines', {}).iteritems():
       axis, pos = k.split('=')
       if axis == 'y': self.setVerticalLine(float(pos), v)
