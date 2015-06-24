@@ -1,7 +1,7 @@
 import os, re, sys
 import Gnuplot, Gnuplot.funcutils
 from subprocess import call
-from utils import zip_flat
+from utils import zip_flat, colorscale
 from config import basic_setup, supported_styles, ureg, default_size
 import numpy as np
 from collections import deque
@@ -46,36 +46,6 @@ class MyPlot(object):
     self.dataSets = {}
     self.size = None
     self._setter(['title "%s"' % title] + basic_setup)
-
-  def _clamp(self, val, minimum = 0, maximum = 255):
-    """convenience function to clamp number into min..max range"""
-    if val < minimum: return minimum
-    if val > maximum: return maximum
-    return val
-
-  def _colorscale(self, hexstr, scalefactor = 1.4):
-    """Scales a hex string by ``scalefactor``. Returns scaled hex string.
-
-    * taken from T. Burgess_ (source_)
-    * To darken the color, use a float value between 0 and 1.
-    * To brighten the color, use a float value greater than 1.
-
-    >>> colorscale("#DF3C3C", .5)
-    #6F1E1E
-    >>> colorscale("#52D24F", 1.6)
-    #83FF7E
-    >>> colorscale("#4F75D2", 1)
-    #4F75D2
-
-    .. _source: http://thadeusb.com/weblog/2010/10/10/python_scale_hex_color
-    .. _Burgess: http://thadeusb.com/about
-    """
-    if scalefactor < 0 or len(hexstr) != 6: return hexstr
-    r, g, b = int(hexstr[:2], 16), int(hexstr[2:4], 16), int(hexstr[4:], 16)
-    r = self._clamp(r * scalefactor)
-    g = self._clamp(g * scalefactor)
-    b = self._clamp(b * scalefactor)
-    return 'rgb "#%02x%02x%02x"' % (r, g, b)
 
   def _get_style_mod_prop(self, prop):
     """get style and modified property string"""
@@ -186,7 +156,7 @@ class MyPlot(object):
         '"%s" not supported! use default_colors or hex specification' % m.group()
       )
     m_lc = re.compile('lc rgb "#[A-Fa-f0-9]{6}"').search(prop)
-    lc = self._colorscale(m_lc.group()[-7:-1]) if m_lc else '0'
+    lc = colorscale(m_lc.group()[-7:-1]) if m_lc else '0'
     m_lw = re.compile('lw \d').search(prop)
     lw = m_lw.group()[-1] if m_lw else '1'
     style, mod_prop = self._get_style_mod_prop(prop)
