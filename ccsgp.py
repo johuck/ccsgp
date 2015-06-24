@@ -36,9 +36,9 @@ def make_plot(data, properties, titles, **kwargs):
   :param yr: y-axis range
   :type yr: list
   :param xreverse: reverse x-axis range 
-  :type xreverse: str
+  :type xreverse: bool
   :param yreverse: reverse x-axis range
-  :type yreverse: str
+  :type yreverse: bool
   :param xlog: make x-axis logarithmic
   :type xlog: bool
   :param ylog: make y-axis logarithmic
